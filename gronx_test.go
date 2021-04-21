@@ -43,6 +43,22 @@ func TestNormalize(t *testing.T) {
 	}
 }
 
+func TestIsValid(t *testing.T) {
+	gron := New()
+
+	t.Run("is valid", func(t *testing.T) {
+		if !gron.IsValid("5,55 * * * *") {
+			t.Errorf("expected false, got true")
+		}
+	})
+
+	t.Run("is not valid", func(t *testing.T) {
+		if gron.IsValid("A-B * * * *") {
+			t.Errorf("expected true, got false")
+		}
+	})
+}
+
 func TestIsDue(t *testing.T) {
 	gron := New()
 
