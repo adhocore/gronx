@@ -1,0 +1,14 @@
+name: lint
+on: [push]
+jobs:
+  golint:
+    runs-on: ubuntu-latest
+    name: lint
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Lint
+        id: golint
+        uses: Jerome1337/go-action/lint@master
+      - name: Lint Output
+        run: echo "${{ steps.golint.outputs.golint-output }}"
