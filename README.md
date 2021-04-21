@@ -27,11 +27,14 @@ import (
 gron := gronx.New()
 expr := "* * * * *"
 
-// check if expr is due for current time
-gron.IsDue(expr)
+// check if expr is even valid, returns bool
+gron.IsValid(expr) // true
+
+// check if expr is due for current time, returns bool and error
+gron.IsDue(expr) // true|false, nil
 
 // check if expr is due for given time
-gron.IsDue(expr, time.Date(2021, time.April, 1, 1, 1, 0, 0, time.UTC))
+gron.IsDue(expr, time.Date(2021, time.April, 1, 1, 1, 0, 0, time.UTC)) // true|false, nil
 ```
 
 ---
