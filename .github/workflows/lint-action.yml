@@ -1,9 +1,8 @@
-name: lint
+name: Lint
 on: [push]
 jobs:
   golint:
     runs-on: ubuntu-latest
-    name: lint
     steps:
       - name: Checkout code
         uses: actions/checkout@v2

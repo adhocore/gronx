@@ -1,12 +1,11 @@
-name: test
-on: [push, pull_request]
 name: Test
+on: [push, pull_request]
 jobs:
   test:
     strategy:
       matrix:
         go-version: [1.14.x, 1.15.x, 1.16.x]
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout code
@@ -16,4 +15,4 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
     - name: Test
-      run: go test -cover -coverprofile=coverage.out .
+      run: go test -cover .
