@@ -42,6 +42,17 @@ Cron expression normally consists of 5 segments viz:
 ```
 and sometimes there can be 6th segment for `<year>` at the end.
 
+For each segments you can have multiple choices separated by comma:
+> Eg: `0,30 * * * *` means either 0th or 30th minute.
+
+To specify range of values you can use dash:
+> Eg: `10-15 * * * *` means 10th, 11th, 12th, 13th, 14th and 15th minute.
+
+To specify range of step you can combine a dash and slash:
+> Eg: `10-15/2 * * * *` means every 2 minutes between 10 and 15 i.e 10th, 12th and 14th.
+
+For the 3rd and 5th segment, there are additional [modifiers](#modifiers) (optional).
+
 ### Real Abbreviations
 
 You can use real abbreviations for month and week days. eg: `JAN`, `dec`, `fri`, `SUN`
