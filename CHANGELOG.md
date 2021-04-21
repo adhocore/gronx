@@ -1,3 +1,12 @@
+## [v0.1.2](https://github.com/adhocore/gronx/releases/tag/v0.1.2) (2021-04-21)
+
+### Features
+- Add IsValid() (Jitendra Adhikari) [_150687b_](https://github.com/adhocore/gronx/commit/150687b)
+
+### Documentations
+- IsValid usage (Jitendra Adhikari) [_b747116_](https://github.com/adhocore/gronx/commit/b747116)
+
+
 ## [v0.1.1](https://github.com/adhocore/gronx/releases/tag/v0.1.1) (2021-04-21)
 
 ### Features
@@ -16,5 +25,3 @@
 ### Documentations
 - On cron expressions (Jitendra Adhikari) [_547fd72_](https://github.com/adhocore/gronx/commit/547fd72)
 - Add readme (Jitendra Adhikari) [_3955e88_](https://github.com/adhocore/gronx/commit/3955e88)
-
-
