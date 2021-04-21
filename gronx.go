@@ -77,3 +77,11 @@ func (g *Gronx) IsDue(expr string, ref ...time.Time) (bool, error) {
 
 	return true, nil
 }
+
+// IsValid checks if cron expression is valid.
+// It returns bool.
+func (g *Gronx) IsValid(expr string) bool {
+	_, err := g.IsDue(expr)
+
+	return err == nil
+}
