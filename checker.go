@@ -6,24 +6,30 @@ import (
 	"time"
 )
 
+// Checker is interface for cron segment due check.
 type Checker interface {
 	GetRef() time.Time
 	SetRef(ref time.Time)
 	CheckDue(segment string, pos int) (bool, error)
 }
 
+// SegmentChecker is factory implementation of Checker.
 type SegmentChecker struct {
 	ref time.Time
 }
 
+// GetRef returns the current reference time
 func (c *SegmentChecker) GetRef() time.Time {
 	return c.ref
 }
 
+// SetRef sets the reference time for which to check if a cron expression is due.
 func (c *SegmentChecker) SetRef(ref time.Time) {
 	c.ref = ref
 }
 
+// CheckDue checks if the cron segment at given position is due.
+// It returns bool or error if any.
 func (c *SegmentChecker) CheckDue(segment string, pos int) (bool, error) {
 	ref := c.GetRef()
 	val, loc := valueByPos(ref, pos), ref.Location()

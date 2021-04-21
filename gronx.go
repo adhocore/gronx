@@ -41,14 +41,18 @@ func normalize(expr string) []string {
 	return strings.Split(strings.ReplaceAll(expr, "  ", " "), " ")
 }
 
+// Gronx is the main program.
 type Gronx struct {
 	C Checker
 }
 
+// New initializes Gronx with factory defaults.
 func New() Gronx {
 	return Gronx{&SegmentChecker{}}
 }
 
+// IsDue checks if cron expression is due for given reference time (or now).
+// It returns bool or error if any.
 func (g *Gronx) IsDue(expr string, ref ...time.Time) (bool, error) {
 	segs := normalize(expr)
 	if len(segs) < 5 || len(segs) > 6 {
