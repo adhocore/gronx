@@ -47,7 +47,7 @@ func TestIsValid(t *testing.T) {
 	gron := New()
 
 	t.Run("is valid", func(t *testing.T) {
-		if !gron.IsValid("5,55 * * * *") {
+		if !gron.IsValid("5,10-20/4,55 * * * *") {
 			t.Errorf("expected false, got true")
 		}
 	})
@@ -73,7 +73,7 @@ func TestIsDue(t *testing.T) {
 	}
 
 	for _, test := range errcases() {
-		t.Run("is due "+test.Expr, func(t *testing.T) {
+		t.Run("is due err "+test.Expr, func(t *testing.T) {
 			actual, err := test.run(gron)
 
 			if actual != test.Expect {
@@ -180,6 +180,10 @@ func errcases() []Case {
 		{"- * * * *", "2011-07-01 00:01:00", false},
 		{"/ * * * *", "2011-07-01 00:01:00", false},
 		{"Z/Z * * * *", "2011-07-01 00:01:00", false},
+		{"Z/0 * * * *", "2011-07-01 00:01:00", false},
+		{"Z-10 * * * *", "2011-07-01 00:01:00", false},
+		{"1-Z * * * *", "2011-07-01 00:01:00", false},
+		{"1-Z/2 * * * *", "2011-07-01 00:01:00", false},
 		{"Z-Z/2 * * * *", "2011-07-01 00:01:00", false},
 		{"* * W * *", "", false},
 		{"* * ZW * *", "", false},
