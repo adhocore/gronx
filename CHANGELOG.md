@@ -1,3 +1,10 @@
+## [v0.1.3](https://github.com/adhocore/gronx/releases/tag/v0.1.3) (2021-04-22)
+
+### Internal Refactors
+- **Checker**: Preserve error, for pos 2 & 4 bail only on due or err (Jitendra Adhikari) [_39a9cd5_](https://github.com/adhocore/gronx/commit/39a9cd5)
+- **Validator**: Do not discard error from strconv (Jitendra Adhikari) [_3b0f444_](https://github.com/adhocore/gronx/commit/3b0f444)
+
+
 ## [v0.1.2](https://github.com/adhocore/gronx/releases/tag/v0.1.2) (2021-04-21)
 
 ### Features
