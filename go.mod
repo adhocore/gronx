@@ -1,3 +1,3 @@
 module github.com/adhocore/gronx
 
-go 1.14
+go 1.13
