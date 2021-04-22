@@ -7,41 +7,49 @@ import (
 	"time"
 )
 
-func inStep(val int, s string) bool {
+func inStep(val int, s string) (bool, error) {
 	parts := strings.Split(s, "/")
 	step, err := strconv.Atoi(parts[1])
-	if err != nil || step == 0 {
-		return false
+	if err != nil {
+		return false, err
+	}
+	if step == 0 {
+		return false, errors.New("step can't be 0")
 	}
 
 	if strings.Index(s, "*/") == 0 || strings.Index(s, "0/") == 0 {
-		return val%step == 0
+		return val%step == 0, nil
 	}
 
 	sub, end := strings.Split(parts[0], "-"), val
 	start, err := strconv.Atoi(sub[0])
+	if err != nil {
+		return false, err
+	}
 
 	if len(sub) > 1 {
 		end, err = strconv.Atoi(sub[1])
+		if err != nil {
+			return false, err
+		}
 	}
 
-	if err != nil {
-		return false
-	}
-
-	return inStepRange(val, start, end, step)
+	return inStepRange(val, start, end, step), nil
 }
 
-func inRange(val int, s string) bool {
+func inRange(val int, s string) (bool, error) {
 	parts := strings.Split(s, "-")
 	start, err := strconv.Atoi(parts[0])
-	end, err1 := strconv.Atoi(parts[1])
-
-	if err != nil || err1 != nil {
-		return false
+	if err != nil {
+		return false, err
 	}
 
-	return start <= val && val <= end
+	end, err := strconv.Atoi(parts[1])
+	if err != nil {
+		return false, err
+	}
+
+	return start <= val && val <= end, nil
 }
 
 func inStepRange(val, start, end, step int) bool {
@@ -69,7 +77,7 @@ func isValidMonthDay(val string, last int, ref time.Time) (bool, error) {
 
 	pos := strings.Index(val, "W")
 	if pos < 1 {
-		return false, errors.New("invalid offset value at segment 2")
+		return false, errors.New("invalid offset value: " + val)
 	}
 
 	nval, err := strconv.Atoi(val[0:pos])
@@ -115,7 +123,7 @@ func isValidWeekDay(val string, last int, ref time.Time) (bool, error) {
 	pos := strings.Index(val, "#")
 	parts := strings.Split(strings.ReplaceAll(val, "7#", "0#"), "#")
 	if pos < 1 || len(parts) < 2 {
-		return false, errors.New("invalid offset value at segment 4")
+		return false, errors.New("invalid offset value: " + val)
 	}
 
 	day, err := strconv.Atoi(parts[0])
