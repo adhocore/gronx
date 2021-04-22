@@ -33,6 +33,7 @@ func (c *SegmentChecker) SetRef(ref time.Time) {
 func (c *SegmentChecker) CheckDue(segment string, pos int) (bool, error) {
 	ref := c.GetRef()
 	val, loc := valueByPos(ref, pos), ref.Location()
+	last := time.Date(ref.Year(), ref.Month(), 1, 0, 0, 0, 0, loc).AddDate(0, 1, 0).Add(-time.Nanosecond).Day()
 
 	for _, offset := range strings.Split(segment, ",") {
 		mod := pos == 2 || pos == 4
@@ -45,12 +46,13 @@ func (c *SegmentChecker) CheckDue(segment string, pos int) (bool, error) {
 			continue
 		}
 
-		last := time.Date(ref.Year(), ref.Month(), 1, 0, 0, 0, 0, loc).AddDate(0, 1, 0).Add(-time.Nanosecond).Day()
 		if pos == 2 {
-			return isValidMonthDay(offset, last, ref)
+			due, err = isValidMonthDay(offset, last, ref)
+		} else if pos == 4 {
+			due, err = isValidWeekDay(offset, last, ref)
 		}
-		if pos == 4 {
-			return isValidWeekDay(offset, last, ref)
+		if due || err != nil {
+			return due, err
 		}
 	}
 
@@ -58,12 +60,11 @@ func (c *SegmentChecker) CheckDue(segment string, pos int) (bool, error) {
 }
 
 func (c *SegmentChecker) isOffsetDue(offset string, val int) (bool, error) {
-	if strings.Contains(offset, "/") && inStep(val, offset) {
-		return true, nil
+	if strings.Contains(offset, "/") {
+		return inStep(val, offset)
 	}
-
-	if strings.Contains(offset, "-") && inRange(val, offset) {
-		return true, nil
+	if strings.Contains(offset, "-") {
+		return inRange(val, offset)
 	}
 
 	if val == 0 || offset == "0" {
