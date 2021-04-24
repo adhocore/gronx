@@ -4,6 +4,7 @@
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
 [![Go Report](https://goreportcard.com/badge/github.com/adhocore/gronx)](https://goreportcard.com/report/github.com/adhocore/gronx)
 [![Test](https://github.com/adhocore/gronx/actions/workflows/test-action.yml/badge.svg)](https://github.com/adhocore/gronx/actions/workflows/test-action.yml)
+[![Donate](https://img.shields.io/badge/donate-paypal-blue.svg?style=flat-square)](https://www.paypal.me/ji10)
 
 `gronx` is Golang cron expression parser ported from [adhocore/cron-expr](https://github.com/adhocore/php-cron-expr).
 
@@ -98,7 +99,7 @@ Following modifiers supported
 ---
 ## License
 
-> &copy; [MIT](./LICENSE) | 2017-2019, Jitendra Adhikari
+> &copy; [MIT](./LICENSE) | 2021-2099, Jitendra Adhikari
 
 ## Credits
 
