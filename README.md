@@ -41,6 +41,14 @@ gron.IsDue(expr) // true|false, nil
 gron.IsDue(expr, time.Date(2021, time.April, 1, 1, 1, 0, 0, time.UTC)) // true|false, nil
 ```
 
+In a more practical level, you would use this tool to manage and invoke jobs in app itself and not
+mess around with `crontab` for each and every new tasks/jobs. It doesn't yet replace that but rather supplements it.
+There is a plan though [#1](https://github.com/adhocore/gronx/issues/1).
+
+In crontab just put one entry with `* * * * *` which points to your Go entry point that uses this tool.
+Then in that entry point you would invoke different tasks if the corresponding Cron expr is due.
+Simple map structure would work for this.
+
 ---
 ### Cron Expression
 
