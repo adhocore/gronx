@@ -1,3 +1,13 @@
+## [v0.1.4](https://github.com/adhocore/gronx/releases/tag/v0.1.4) (2021-04-25)
+
+### Miscellaneous
+- **Mod**: 1.13 is okay too (Jitendra Adhikari) [_6c328e7_](https://github.com/adhocore/gronx/commit/6c328e7)
+- Try go 1.13.x (Jitendra Adhikari) [_b017ec4_](https://github.com/adhocore/gronx/commit/b017ec4)
+
+### Documentations
+- Practical usage (Jitendra Adhikari) [_9572e61_](https://github.com/adhocore/gronx/commit/9572e61)
+
+
 ## [v0.1.3](https://github.com/adhocore/gronx/releases/tag/v0.1.3) (2021-04-22)
 
 ### Internal Refactors
