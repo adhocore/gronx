@@ -27,7 +27,7 @@ var expressions = map[string]string{
 	"@30minutes": "0,30 * * * *",
 }
 
-var spaceRe = regexp.MustCompile(`\s+`)
+var SpaceRe = regexp.MustCompile(`\s+`)
 
 func normalize(expr string) []string {
 	expr = strings.Trim(expr, " \t")
@@ -35,7 +35,7 @@ func normalize(expr string) []string {
 		expr = e
 	}
 
-	expr = spaceRe.ReplaceAllString(expr, " ")
+	expr = SpaceRe.ReplaceAllString(expr, " ")
 	expr = literals.Replace(strings.ToUpper(expr))
 
 	return strings.Split(strings.ReplaceAll(expr, "  ", " "), " ")
@@ -54,18 +54,35 @@ func New() Gronx {
 // IsDue checks if cron expression is due for given reference time (or now).
 // It returns bool or error if any.
 func (g *Gronx) IsDue(expr string, ref ...time.Time) (bool, error) {
-	segs := normalize(expr)
-	if len(segs) < 5 || len(segs) > 6 {
-		return false, errors.New("expr should contain 5 to 6 segments separated by space")
-	}
-
 	if len(ref) > 0 {
 		g.C.SetRef(ref[0])
 	} else {
 		g.C.SetRef(time.Now())
 	}
 
-	for pos, seg := range segs {
+	segs, err := Segments(expr)
+	if err != nil {
+		return false, err
+	}
+
+	return g.SegmentsDue(segs)
+}
+
+// Segments splits expr into array array of cron parts.
+// It returns array or error.
+func Segments(expr string) ([]string, error) {
+	segs := normalize(expr)
+	if len(segs) < 5 || len(segs) > 6 {
+		return []string{}, errors.New("expr should contain 5-6 segments separated by space")
+	}
+
+	return segs, nil
+}
+
+// SegmentsDue checks if all cron parts are due.
+// It returns bool. You should use IsDue(expr) instead.
+func (g *Gronx) SegmentsDue(segments []string) (bool, error) {
+	for pos, seg := range segments {
 		if seg == "*" || seg == "?" {
 			continue
 		}
