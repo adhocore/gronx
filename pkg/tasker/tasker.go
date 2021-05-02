@@ -257,6 +257,9 @@ func (t *Tasker) tickTimer(first bool) (time.Time, bool) {
 	if t.verbose && !willTime {
 		t.Log.Printf("[tasker] next tick on %s", next.Format("2006/01/02 15:04:05"))
 	}
+	if willTime {
+		dur = time.Duration(tickSec) - now.Sub(t.until)
+	}
 
 	time.Sleep(dur)
 	t.timeout = timed && next.After(t.until)
