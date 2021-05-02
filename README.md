@@ -68,18 +68,19 @@ import (
 func main() {
 	taskr := tasker.New(tasker.Option{
 		Verbose: true,
-        // optional: defaults to local
+		// optional: defaults to local
 		Tz:      "Asia/Bangkok",
-        // optional: defaults to Golang's default log stream
+		// optional: defaults to stderr log stream
 		Out:     "/full/path/to/output-file",
 	})
 
-	taskr.Task("* * * * *", func(ctx context.Context) (int, error) { // add task to run every minute
+	// add task to run every minute
+	taskr.Task("* * * * *", func(ctx context.Context) (int, error) {
 		// do something ...
 
 		// then return exit code and error, for eg: if everything okay
 		return 0, nil
-	}).Task("*/5 * * * *", func(ctx context.Context) (int, error) { // add task to run every 5 minutes
+	}).Task("*/5 * * * *", func(ctx context.Context) (int, error) { // every 5 minutes
 		// you can also log the output to Out file as configured in Option above:
 		taskr.Log.Printf("done something in %d s", 2)
 
@@ -91,8 +92,8 @@ func main() {
 
 	// ... add more tasks
 
-	// optionally if you want tasker to stop after an hour, just pass the duration with Until():
-	taskr.Until(60 * time.Minute)
+	// optionally if you want tasker to stop after 2 hour, pass the duration with Until():
+	taskr.Until(2 * time.Hour)
 
 	// finally run the tasker, it ticks sharply on every minute and runs all the tasks due on that time!
 	// it exits gracefully when ctrl+c is received making sure pending tasks are completed.
@@ -110,6 +111,7 @@ go get -u github.com/adhocore/gronx/cmd/tasker
 
 Then prepare a taskfile ([example](./tests/../test/taskfile.txt)) in crontab format
 (or can even point to existing crontab).
+> `user` is not supported: it is just cron expr followed by the command.
 
 Finally run the task daemon like so
 ```
