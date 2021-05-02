@@ -146,6 +146,12 @@ tasker -tz America/New_York -file path/to/taskfile -shell zsh # run all tasks us
 > The directory for outfile (`-out` option) must exist, file is created by task daemon.
 
 > Same timezone applies for all tasks currently and it might support overriding timezone per task in future release.
+
+#### Notes on Windows
+In Windows if it doesn't find `bash.exe` or `git-bash.exe` it will use `powershell`.
+`powershell` may not be compatible with Unix flavored commands. Also to note:
+you can't do chaining with `cmd1 && cmd2` but rather `cmd1 ; cmd2`.
+
 ---
 ### Cron Expression
 
