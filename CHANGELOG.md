@@ -1,3 +1,9 @@
+## [v0.2.1](https://github.com/adhocore/gronx/releases/tag/v0.2.1) (2021-05-02)
+
+### Bug Fixes
+- **Pkg.tasker**: Deprecate sleep dur if next tick timeout (Jitendra Adhikari) [_3de45a1_](https://github.com/adhocore/gronx/commit/3de45a1)
+
+
 ## [v0.2.0](https://github.com/adhocore/gronx/releases/tag/v0.2.0) (2021-05-02)
 
 ### Features
