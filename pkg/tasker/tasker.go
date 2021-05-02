@@ -3,7 +3,6 @@ package tasker
 import (
 	"context"
 	"fmt"
-	"io/fs"
 	"log"
 	"os"
 	"os/exec"
@@ -79,7 +78,7 @@ func New(opt Option) *Tasker {
 			log.Fatalf("output dir does not exist: %s", filepath.Base(opt.Out))
 		}
 
-		file, err := os.OpenFile(opt.Out, os.O_CREATE|os.O_WRONLY, fs.ModePerm)
+		file, err := os.OpenFile(opt.Out, os.O_CREATE|os.O_WRONLY, 0777)
 		if err != nil {
 			log.Fatalf("can't open output file: %s", opt.Out)
 		}
