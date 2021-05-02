@@ -71,10 +71,6 @@ func isValidMonthDay(val string, last int, ref time.Time) (bool, error) {
 		return day == last, nil
 	}
 
-	if ref.Weekday() == 0 || ref.Weekday() == 6 {
-		return false, nil
-	}
-
 	pos := strings.Index(val, "W")
 	if pos < 1 {
 		return false, errors.New("invalid offset value: " + val)
