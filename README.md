@@ -42,13 +42,105 @@ gron.IsDue(expr, time.Date(2021, time.April, 1, 1, 1, 0, 0, time.UTC)) // true|f
 ```
 
 In a more practical level, you would use this tool to manage and invoke jobs in app itself and not
-mess around with `crontab` for each and every new tasks/jobs. It doesn't yet replace that but rather supplements it.
-There is a plan though [#1](https://github.com/adhocore/gronx/issues/1).
+mess around with `crontab` for each and every new tasks/jobs. ~~It doesn't yet replace that but rather supplements it.
+There is a plan though [#1](https://github.com/adhocore/gronx/issues/1)~~.
 
 In crontab just put one entry with `* * * * *` which points to your Go entry point that uses this tool.
 Then in that entry point you would invoke different tasks if the corresponding Cron expr is due.
 Simple map structure would work for this.
 
+Check the section below for more sophisticated way of managing tasks automatically using `gronx` daemon called `tasker`.
+
+---
+### Go Tasker
+
+Tasker is a task manager that can be programatically used in Golang applications. It runs as a daemon and and invokes tasks scheduled with cron expression:
+```go
+package main
+
+import (
+	"context"
+	"time"
+
+	"github.com/adhocore/gronx/pkg/tasker"
+)
+
+func main() {
+	taskr := tasker.New(tasker.Option{
+		Verbose: true,
+        // optional: defaults to local
+		Tz:      "Asia/Bangkok",
+        // optional: defaults to Golang's default log stream
+		Out:     "/full/path/to/output-file",
+	})
+
+	taskr.Task("* * * * *", func(ctx context.Context) (int, error) { // add task to run every minute
+		// do something ...
+
+		// then return exit code and error, for eg: if everything okay
+		return 0, nil
+	}).Task("*/5 * * * *", func(ctx context.Context) (int, error) { // add task to run every 5 minutes
+		// you can also log the output to Out file as configured in Option above:
+		taskr.Log.Printf("done something in %d s", 2)
+
+		return 0, nil
+	}).Task("@10minutes", tasker.Taskify("command --option val -- args")) // every 10 minute with arbitrary command
+
+	// ... add more tasks
+
+	// optionally if you want tasker to stop after an hour, just pass the duration with Until():
+	taskr.Until(60 * time.Minute)
+
+	// finally run the tasker, it ticks sharply on every minute and runs all the tasks due on that time!
+	// it exits gracefully when ctrl+c is received making sure pending tasks are completed.
+	taskr.Run()
+}
+```
+
+### Task Daemon
+It can also be used as standalone task daemon instead of programmatic usage for Golang application.
+
+First, just install tasker command:
+```sh
+go get -u github.com/adhocore/gronx/cmd/tasker
+```
+
+Then prepare a taskfile ([example](./tests/../test/taskfile.txt)) in crontab format
+(or can even point to existing crontab).
+
+Finally run the task daemon like so
+```
+tasker -file path/to/taskfile
+```
+> You can pass more options to control the behavior of task daemon, see below.
+
+####  Tasker command options:
+```txt
+-file string <required>
+    The task file in crontab format
+-out string
+    The fullpath to file where output from tasks are sent to
+-shell string
+    The shell to use for running tasks (default "/usr/bin/bash")
+-tz string
+    The timezone to use for tasks (default "Local")
+-until int
+    The timeout for task daemon in minutes
+-verbose
+    The verbose mode outputs as much as possible
+```
+
+Examples:
+```sh
+tasker -verbose -file path/to/taskfile -until 120 # run until next 120min (i.e 2hour) with all feedbacks echoed back
+tasker -verbose -file path/to/taskfile -out path/to/output # with all feedbacks echoed to the output file
+tasker -tz America/New_York -file path/to/taskfile -shell zsh # run all tasks using zsh shell based on NY timezone
+```
+
+> File extension of taskfile for (`-file` option) does not matter: can be any or none.
+> The directory for outfile (`-out` option) must exist, file is created by task daemon.
+
+> Same timezone applies for all tasks currently and it might support overriding timezone per task in future release.
 ---
 ### Cron Expression
 
