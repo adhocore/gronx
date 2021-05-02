@@ -1,0 +1,12 @@
+# this taskfile contains 5 tasks, lines starting with # are comments
+*/1 0/1 * * * echo '[task 1] */1 0/1 * * *' > test/task1.out
+* * * * * 2021 echo '[task 2] * * * * * 2021' > test/task2.out
+
+# below three are equivalent
+@always echo '[task 3] @always' > test/task3.out
+@always echo '[task 4] @always' > test/task4.out
+*   *  *  * * echo '[task 5] *   *  *  * *' > test/task5.out
+
+# below are invalid
+@invalid
+* * * * *
