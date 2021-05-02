@@ -84,7 +84,10 @@ func main() {
 		taskr.Log.Printf("done something in %d s", 2)
 
 		return 0, nil
-	}).Task("@10minutes", tasker.Taskify("command --option val -- args")) // every 10 minute with arbitrary command
+	})
+
+	// every 10 minute with arbitrary command
+	taskr.Task("@10minutes", tasker.Taskify("command --option val -- args"))
 
 	// ... add more tasks
 
