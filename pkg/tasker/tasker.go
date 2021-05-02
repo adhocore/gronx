@@ -72,7 +72,7 @@ func New(opt Option) *Tasker {
 		log.Fatalf("invalid tz location: %s", opt.Tz)
 	}
 
-	logger := log.Default()
+	logger := log.New(os.Stderr, "", log.LstdFlags)
 	if opt.Out != "" {
 		if _, err := os.Stat(filepath.Dir(opt.Out)); err != nil {
 			log.Fatalf("output dir does not exist: %s", filepath.Base(opt.Out))
