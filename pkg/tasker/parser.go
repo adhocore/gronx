@@ -10,6 +10,8 @@ import (
 	"github.com/adhocore/gronx"
 )
 
+// MustParseTaskfile either parses taskfile from given Option.
+// It fails hard in case any error.
 func MustParseTaskfile(opts Option) []Task {
 	file, err := os.Open(opts.File)
 	if err != nil {

@@ -27,6 +27,7 @@ var expressions = map[string]string{
 	"@30minutes": "0,30 * * * *",
 }
 
+// SpaceRe is regex for whitespace.
 var SpaceRe = regexp.MustCompile(`\s+`)
 
 func normalize(expr string) []string {

@@ -132,7 +132,7 @@ func Shell(shell ...string) []string {
 	return []string{"/bin/sh", "-c"}
 }
 
-const taskIdFormat = "[%s][#%d]"
+const taskIDFormat = "[%s][#%d]"
 
 // Task appends new task handler for given cron expr.
 // It returns Tasker (itself) for fluency and bails if expr is invalid.
@@ -152,7 +152,7 @@ func (t *Tasker) Task(expr string, task TaskFunc) *Tasker {
 		t.exprs[expr] = []string{}
 	}
 
-	ref := fmt.Sprintf(taskIdFormat, old, len(t.exprs[expr])+1)
+	ref := fmt.Sprintf(taskIDFormat, old, len(t.exprs[expr])+1)
 
 	t.exprs[expr] = append(t.exprs[expr], ref)
 	t.tasks[ref] = task
