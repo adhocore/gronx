@@ -1,3 +1,25 @@
+## [v0.2.0](https://github.com/adhocore/gronx/releases/tag/v0.2.0) (2021-05-02)
+
+### Features
+- **Cmd.tasker**: Add tasker for standalone usage as task daemon (Jitendra Adhikari) [_0d99409_](https://github.com/adhocore/gronx/commit/0d99409)
+- **Pkg.tasker**: Add parser for tasker pkg (Jitendra Adhikari) [_e7f1811_](https://github.com/adhocore/gronx/commit/e7f1811)
+- **Pkg.tasker**: Add tasker pkg (Jitendra Adhikari) [_a57b1c4_](https://github.com/adhocore/gronx/commit/a57b1c4)
+
+### Bug Fixes
+- **Pkg.tasker**: Use log.New() instead (Jitendra Adhikari) [_0cf2c07_](https://github.com/adhocore/gronx/commit/0cf2c07)
+- **Validator**: This check is not really required (Jitendra Adhikari) [_c3d75e3_](https://github.com/adhocore/gronx/commit/c3d75e3)
+
+### Internal Refactors
+- **Gronx**: Add public methods for internal usage, expose spaceRe (Jitendra Adhikari) [_94eb20b_](https://github.com/adhocore/gronx/commit/94eb20b)
+
+### Miscellaneous
+- **Pkg.tasker**: Use file perms as octal (Jitendra Adhikari) [_83f258d_](https://github.com/adhocore/gronx/commit/83f258d)
+- **Workflow**: Include all tests in action (Jitendra Adhikari) [_7328cbf_](https://github.com/adhocore/gronx/commit/7328cbf)
+
+### Documentations
+- Add task mangager and tasker docs/usages (Jitendra Adhikari) [_e77aa5f_](https://github.com/adhocore/gronx/commit/e77aa5f)
+
+
 ## [v0.1.4](https://github.com/adhocore/gronx/releases/tag/v0.1.4) (2021-04-25)
 
 ### Miscellaneous
