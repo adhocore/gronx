@@ -290,7 +290,7 @@ func (t *Tasker) runTasks(tasks map[string]TaskFunc) {
 
 func (t *Tasker) doRun(ctx context.Context, ref string, task TaskFunc, rc chan result) {
 	defer t.wg.Done()
-	if t.abort {
+	if t.abort || t.timeout {
 		return
 	}
 
