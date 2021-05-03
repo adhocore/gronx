@@ -23,13 +23,10 @@ func TestRun(t *testing.T) {
 			return 0, nil
 		})
 
+		time.Sleep(time.Second - time.Duration(time.Now().Nanosecond()))
+
 		dur := 5 * time.Second
 		now := time.Now()
-		wait := tickSec - now.Second()%tickSec
-		tickDur := time.Duration(wait) * time.Second
-		if wait == 0 {
-			tickDur = time.Duration(tickSec) * time.Second
-		}
 
 		taskr.Until(dur).Run()
 
@@ -37,6 +34,8 @@ func TestRun(t *testing.T) {
 			t.Errorf("task should run 2 times, ran %d times", called)
 		}
 
+		wait := tickSec - now.Second()%tickSec
+		tickDur := time.Duration(wait) * time.Second
 		start := now.Format(dateFormat)
 		end := now.Add(dur).Format(dateFormat)
 		next1 := now.Add(tickDur).Format(dateFormat)
