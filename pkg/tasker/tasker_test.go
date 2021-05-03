@@ -2,6 +2,9 @@ package tasker
 
 import (
 	"context"
+	"fmt"
+	"io/ioutil"
+	"strings"
 	"testing"
 	"time"
 )
@@ -13,18 +16,60 @@ func TestRun(t *testing.T) {
 
 		called := 0
 		taskr.Task("@always", func(ctx context.Context) (int, error) {
-			taskr.Log.Println("task [@always] sleeping 3s")
+			taskr.Log.Println("task [@always][#1] sleeping 3s")
 			time.Sleep(3 * time.Second)
-			taskr.Log.Println("task [@always] finished")
 			called++
 
 			return 0, nil
 		})
 
-		taskr.Until(5 * time.Second).Run()
+		dur := 5 * time.Second
+		now := time.Now()
+		wait := tickSec - now.Second()%tickSec
+		tickDur := time.Duration(wait) * time.Second
+		if wait == 0 {
+			tickDur = time.Duration(tickSec) * time.Second
+		}
+
+		taskr.Until(dur).Run()
 
 		if called != 2 {
-			t.Errorf("task should be run 2 times, ran %d times", called)
+			t.Errorf("task should run 2 times, ran %d times", called)
+		}
+
+		start := now.Format(dateFormat)
+		end := now.Add(dur).Format(dateFormat)
+		next1 := now.Add(tickDur).Format(dateFormat)
+		fin1 := now.Add(tickDur + 3*time.Second).Format(dateFormat)
+		next2 := now.Add(tickDur + time.Duration(tickSec)*time.Second).Format(dateFormat)
+		fin2 := now.Add(tickDur + time.Duration(tickSec+3)*time.Second).Format(dateFormat)
+
+		buffers := []string{
+			start + " [tasker] final tick on or before " + end,
+			start + " [tasker] next tick on " + next1,
+
+			next1 + " [tasker] running 1 due tasks",
+			next1 + " [tasker] next tick on " + next2,
+			next1 + " [tasker] task [@always][#1] running",
+			next1 + " task [@always][#1] sleeping 3s",
+
+			next2 + " [tasker] running 1 due tasks",
+			next2 + " [tasker] task [@always][#1] running",
+			next2 + " task [@always][#1] sleeping 3s",
+
+			fin1 + " [tasker] task [@always][#1] ran successfully",
+			end + " [tasker] timed out, waiting tasks to complete",
+			fin2 + " [tasker] task [@always][#1] ran successfully",
+		}
+
+		buf, _ := ioutil.ReadFile("../../test/tasker.out")
+		buffer := string(buf)
+		fmt.Println(buffer)
+
+		for _, expect := range buffers {
+			if !strings.Contains(buffer, expect) {
+				t.Errorf("buffer should contain %s", expect)
+			}
 		}
 	})
 }
