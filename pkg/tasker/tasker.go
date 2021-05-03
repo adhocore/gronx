@@ -213,6 +213,8 @@ func (t *Tasker) Run() {
 	t.wait()
 }
 
+var dateFormat = "2006/01/02 15:04:05"
+
 func (t *Tasker) doSetup() {
 	if len(t.tasks) == 0 {
 		t.Log.Fatal("[tasker] no tasks available")
@@ -221,7 +223,7 @@ func (t *Tasker) doSetup() {
 		if t.until.Before(t.now()) {
 			log.Fatalf("[tasker] timeout must be in future")
 		}
-		t.Log.Printf("[tasker] final tick on %s", t.until.Format("2006/01/02 15:04:00"))
+		t.Log.Printf("[tasker] final tick on or before %s", t.until.Format(dateFormat))
 	}
 
 	sig := make(chan os.Signal)
@@ -255,7 +257,7 @@ func (t *Tasker) tickTimer(first bool) (time.Time, bool) {
 	next := now.Add(dur)
 	willTime = timed && next.After(t.until)
 	if t.verbose && !willTime {
-		t.Log.Printf("[tasker] next tick on %s", next.Format("2006/01/02 15:04:05"))
+		t.Log.Printf("[tasker] next tick on %s", next.Format(dateFormat))
 	}
 	if willTime {
 		dur = time.Duration(tickSec) - now.Sub(t.until)
