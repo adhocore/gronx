@@ -1,3 +1,12 @@
+## [v0.2.2](https://github.com/adhocore/gronx/releases/tag/v0.2.2) (2021-05-03)
+
+### Bug Fixes
+- **Pkg.tasker**: DoRun checks if timed out before run (Jitendra Adhikari) [_f27a657_](https://github.com/adhocore/gronx/commit/f27a657)
+
+### Internal Refactors
+- **Pkg.tasker**: Use dateFormat var, update final tick phrase (Jitendra Adhikari) [_fad0271_](https://github.com/adhocore/gronx/commit/fad0271)
+
+
 ## [v0.2.1](https://github.com/adhocore/gronx/releases/tag/v0.2.1) (2021-05-02)
 
 ### Bug Fixes
