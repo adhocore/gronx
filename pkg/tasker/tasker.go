@@ -325,4 +325,7 @@ func (t *Tasker) wait() {
 	}
 
 	t.wg.Wait()
+
+	// Allow a leeway period
+	time.Sleep(100 * time.Microsecond)
 }
