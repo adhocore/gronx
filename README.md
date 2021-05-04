@@ -218,3 +218,10 @@ Following modifiers supported
 
 This project is ported from [adhocore/cron-expr](https://github.com/adhocore/php-cron-expr) and
 release managed by [please](https://github.com/adhocore/please).
+
+---
+### Other projects
+My other golang projects you might find interesting and useful:
+
+- [**urlsh**](https://github.com/adhocore/urlsh) - URL shortener and bookmarker service with UI, API, Cache, Hits Counter and forwarder using postgres and redis in backend, bulma in frontend; has [web](https://urlssh.xyz) and cli client
+- [**fast**](https://github.com/adhocore/fast) - Check your internet speed with ease and comfort right from the terminal
