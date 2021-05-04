@@ -185,13 +185,12 @@ func (t *Tasker) Run() {
 	first := true
 	for !t.abort && !t.timeout {
 		ref, willTime := t.tickTimer(first)
-
-		t.gron.C.SetRef(ref)
-		if t.timeout {
+		if t.timeout || t.abort {
 			break
 		}
 
 		tasks := make(map[string]TaskFunc)
+		t.gron.C.SetRef(ref)
 		for expr, refs := range t.exprs {
 			if due, _ := t.gron.SegmentsDue(strings.Split(expr, " ")); !due {
 				continue
@@ -232,7 +231,6 @@ func (t *Tasker) doSetup() {
 	go func() {
 		<-sig
 		t.abort = true
-		t.wait()
 	}()
 }
 
@@ -253,17 +251,19 @@ func (t *Tasker) tickTimer(first bool) (time.Time, bool) {
 		return now, willTime
 	}
 
-	dur := time.Duration(wait) * time.Second
-	next := now.Add(dur)
+	next := now.Add(time.Duration(wait) * time.Second)
 	willTime = timed && next.After(t.until)
 	if t.verbose && !willTime {
 		t.Log.Printf("[tasker] next tick on %s", next.Format(dateFormat))
 	}
+
 	if willTime {
-		dur = time.Duration(tickSec) - now.Sub(t.until)
+		next = now.Add(time.Duration(tickSec) - now.Sub(t.until))
+	}
+	for !t.abort && !t.timeout && t.now().Before(next) {
+		time.Sleep(100 * time.Millisecond)
 	}
 
-	time.Sleep(dur)
 	t.timeout = timed && next.After(t.until)
 
 	return next, willTime
