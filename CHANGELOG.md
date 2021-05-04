@@ -1,3 +1,12 @@
+## [v0.2.3](https://github.com/adhocore/gronx/releases/tag/v0.2.3) (2021-05-04)
+
+### Bug Fixes
+- **Pkg.tasker**: Sleep 100ms so abort can be bailed asap, remove dup msg (Jitendra Adhikari) [_d868920_](https://github.com/adhocore/gronx/commit/d868920)
+
+### Miscellaneous
+- Allow leeway period at the end (Jitendra Adhikari) [_5ebf923_](https://github.com/adhocore/gronx/commit/5ebf923)
+
+
 ## [v0.2.2](https://github.com/adhocore/gronx/releases/tag/v0.2.2) (2021-05-03)
 
 ### Bug Fixes
