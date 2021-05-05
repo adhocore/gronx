@@ -14,7 +14,7 @@ func main() {
 	taskr := tasker.New(opt)
 
 	for _, task := range tasker.MustParseTaskfile(opt) {
-		taskr.Task(task.Expr, tasker.Taskify(task.Cmd, opt))
+		taskr.Task(task.Expr, taskr.Taskify(task.Cmd, opt))
 	}
 
 	if opt.Until > 0 {
