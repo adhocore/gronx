@@ -76,7 +76,8 @@ func TestRun(t *testing.T) {
 func TestTaskify(t *testing.T) {
 	t.Run("Taskify", func(t *testing.T) {
 		ctx := context.TODO()
-		code, err := Taskify("echo -n 'taskify' > ../../test/taskify.out; echo 'test' >> ../../test/taskify.out", Option{})(ctx)
+		taskr := New(Option{})
+		code, err := taskr.Taskify("echo -n 'taskify' > ../../test/taskify.out; echo 'test' >> ../../test/taskify.out", Option{})(ctx)
 
 		if code != 0 {
 			t.Errorf("expected code 0, got %d", code)

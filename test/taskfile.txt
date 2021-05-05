@@ -6,6 +6,7 @@
 @always echo '[task 3] @always' > test/task3.out
 @always echo '[task 4] @always' > test/task4.out
 *   *  *  * * echo '[task 5] *   *  *  * *' > test/task5.out
+* * * * * echo '[task 6] it should go to outfile' && invalid-cmd
 
 # below are invalid
 @invalid

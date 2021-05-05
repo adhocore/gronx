@@ -7,8 +7,8 @@ import (
 func TestMustParseTaskfile(t *testing.T) {
 	t.Run("MustParseTaskfile", func(t *testing.T) {
 		tasks := MustParseTaskfile(Option{File: "../../test/taskfile.txt"})
-		if len(tasks) != 5 {
-			t.Errorf("should have 5 tasks, got %d", len(tasks))
+		if len(tasks) != 6 {
+			t.Errorf("should have 6 tasks, got %d", len(tasks))
 		}
 
 		if tasks[0].Expr != "*/1 0/1 * * *" {
