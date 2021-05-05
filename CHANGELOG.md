@@ -1,3 +1,12 @@
+## [v0.2.4](https://github.com/adhocore/gronx/releases/tag/v0.2.4) (2021-05-05)
+
+### Features
+- **Pkg.tasker**: Capture cmd output in tasker logger, error in stderr (Jitendra Adhikari) [_0da0aae_](https://github.com/adhocore/gronx/commit/0da0aae)
+
+### Internal Refactors
+- **Cmd.tasker**: Taskify is now method of tasker (Jitendra Adhikari) [_8b1373b_](https://github.com/adhocore/gronx/commit/8b1373b)
+
+
 ## [v0.2.3](https://github.com/adhocore/gronx/releases/tag/v0.2.3) (2021-05-04)
 
 ### Bug Fixes
