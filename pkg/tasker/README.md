@@ -53,7 +53,7 @@ func main() {
 	})
 
 	// every 10 minute with arbitrary command
-	taskr.Task("@10minutes", tasker.Taskify("command --option val -- args"))
+	taskr.Task("@10minutes", taskr.Taskify("command --option val -- args"))
 
 	// ... add more tasks
 
