@@ -1,3 +1,9 @@
+## [v0.2.5](https://github.com/adhocore/gronx/releases/tag/v0.2.5) (2021-07-25)
+
+### Bug Fixes
+- **Tasker**: The clause should be using OR (Jitendra Adhikari) [_b813b85_](https://github.com/adhocore/gronx/commit/b813b85)
+
+
 ## [v0.2.4](https://github.com/adhocore/gronx/releases/tag/v0.2.4) (2021-05-05)
 
 ### Features
