@@ -53,16 +53,12 @@ func inRange(val int, s string) (bool, error) {
 }
 
 func inStepRange(val, start, end, step int) bool {
-	for {
-		if start == val {
+	for i := start; i <= end && i <= val; i += step {
+		if i == val {
 			return true
 		}
-		if start > end {
-			return false
-		}
-
-		start += step
 	}
+	return false
 }
 
 func isValidMonthDay(val string, last int, ref time.Time) (bool, error) {
