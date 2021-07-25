@@ -259,7 +259,7 @@ func (t *Tasker) tickTimer(first bool) (time.Time, bool) {
 		wait = tickSec
 	}
 
-	if wait < 1 && wait > tickSec {
+	if wait < 1 || wait > tickSec {
 		return now, willTime
 	}
 
