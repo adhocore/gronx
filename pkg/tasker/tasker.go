@@ -38,17 +38,18 @@ type Task struct {
 
 // Tasker is the task manager.
 type Tasker struct {
-	Log     *log.Logger
-	loc     *time.Location
-	gron    *gronx.Gronx
-	wg      sync.WaitGroup
-	until   time.Time
-	exprs   map[string][]string
-	tasks   map[string]TaskFunc
-	abort   bool
-	timeout bool
-	verbose bool
-	ctx     context.Context
+	Log       *log.Logger
+	loc       *time.Location
+	gron      *gronx.Gronx
+	wg        sync.WaitGroup
+	until     time.Time
+	exprs     map[string][]string
+	tasks     map[string]TaskFunc
+	abort     bool
+	timeout   bool
+	verbose   bool
+	ctx       context.Context
+	ctxCancel context.CancelFunc
 }
 
 type result struct {
@@ -93,17 +94,16 @@ func New(opt Option) *Tasker {
 // WithContext adds a parent context to the Tasker struct
 // and begins the abort when Done is received
 func (t *Tasker) WithContext(ctx context.Context) *Tasker {
-	t.ctx = ctx
-
-	go func() {
-		<-t.ctx.Done()
-		if t.verbose {
-			t.Log.Printf("[tasker] received signal on context.Done, aborting")
-		}
-		t.abort = true
-	}()
-
+	t.ctx, t.ctxCancel = context.WithCancel(ctx)
 	return t
+}
+
+func (t *Tasker) ctxDone() {
+	<-t.ctx.Done()
+	if t.verbose {
+		t.Log.Printf("[tasker] received signal on context.Done, aborting")
+	}
+	t.abort = true
 }
 
 // Taskify creates TaskFunc out of plain command wrt given options.
@@ -252,6 +252,11 @@ func (t *Tasker) doSetup() {
 			log.Fatalf("[tasker] timeout must be in future")
 		}
 		t.Log.Printf("[tasker] final tick on or before %s", t.until.Format(dateFormat))
+	}
+
+	if t.ctx == nil && !t.until.IsZero() {
+		t.ctx, t.ctxCancel = context.WithDeadline(t.ctx, t.until)
+		go t.ctxDone()
 	}
 
 	sig := make(chan os.Signal)
