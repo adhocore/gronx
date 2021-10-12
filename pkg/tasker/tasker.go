@@ -48,6 +48,7 @@ type Tasker struct {
 	abort   bool
 	timeout bool
 	verbose bool
+	ctx     context.Context
 }
 
 type result struct {
@@ -87,6 +88,22 @@ func New(opt Option) *Tasker {
 	}
 
 	return &Tasker{Log: logger, loc: loc, gron: &gron, exprs: exprs, tasks: tasks, verbose: opt.Verbose}
+}
+
+// WithContext adds a parent context to the Tasker struct
+// and begins the abort when Done is received
+func (t *Tasker) WithContext(ctx context.Context) *Tasker {
+	t.ctx = ctx
+
+	go func() {
+		<-t.ctx.Done()
+		if t.verbose {
+			t.Log.Printf("[tasker] received signal on context.Done, aborting")
+		}
+		t.abort = true
+	}()
+
+	return t
 }
 
 // Taskify creates TaskFunc out of plain command wrt given options.
@@ -290,7 +307,11 @@ func (t *Tasker) runTasks(tasks map[string]TaskFunc) {
 		}
 	}
 
-	ctx := context.TODO()
+	ctx := context.Background()
+	if t.ctx != nil {
+		ctx = t.ctx
+	}
+
 	for ref, task := range tasks {
 		t.wg.Add(1)
 		rc := make(chan result)
