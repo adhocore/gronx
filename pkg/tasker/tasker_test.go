@@ -87,3 +87,48 @@ func TestTaskify(t *testing.T) {
 		}
 	})
 }
+
+func TestWithContext(t *testing.T) {
+	t.Run("WithContext", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		taskr := New(Option{Verbose: true, Out: "../../test/tasker-ctx.out"}).WithContext(ctx)
+
+		called := 0
+		taskr.Task("@always", func(ctx context.Context) (int, error) {
+			taskr.Log.Println("task [@always][#1] waiting 3s")
+			called++
+			ct := 0
+		M:
+			for {
+				time.Sleep(300 * time.Millisecond)
+				select {
+				case <-ctx.Done():
+					taskr.Log.Printf("task [@always][#1] received Done signal after %d ms\n", ct*300)
+					break M
+				default:
+					ct++
+				}
+			}
+			return 0, nil
+		})
+
+		startCh := make(chan bool)
+
+		go func() {
+			<-startCh
+			time.Sleep(4 * time.Second)
+			cancel()
+		}()
+
+		startCh <- true
+		taskr.Until(5 * time.Second).Run()
+
+		if called != 2 {
+			t.Errorf("task should run 2 times, ran %d times", called)
+		}
+
+		buf, _ := ioutil.ReadFile("../../test/tasker-ctx.out")
+		buffer := string(buf)
+		fmt.Println(buffer)
+	})
+}

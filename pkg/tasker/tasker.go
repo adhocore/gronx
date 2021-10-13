@@ -38,16 +38,18 @@ type Task struct {
 
 // Tasker is the task manager.
 type Tasker struct {
-	Log     *log.Logger
-	loc     *time.Location
-	gron    *gronx.Gronx
-	wg      sync.WaitGroup
-	until   time.Time
-	exprs   map[string][]string
-	tasks   map[string]TaskFunc
-	abort   bool
-	timeout bool
-	verbose bool
+	Log       *log.Logger
+	loc       *time.Location
+	gron      *gronx.Gronx
+	wg        sync.WaitGroup
+	until     time.Time
+	exprs     map[string][]string
+	tasks     map[string]TaskFunc
+	abort     bool
+	timeout   bool
+	verbose   bool
+	ctx       context.Context
+	ctxCancel context.CancelFunc
 }
 
 type result struct {
@@ -87,6 +89,21 @@ func New(opt Option) *Tasker {
 	}
 
 	return &Tasker{Log: logger, loc: loc, gron: &gron, exprs: exprs, tasks: tasks, verbose: opt.Verbose}
+}
+
+// WithContext adds a parent context to the Tasker struct
+// and begins the abort when Done is received
+func (t *Tasker) WithContext(ctx context.Context) *Tasker {
+	t.ctx, t.ctxCancel = context.WithCancel(ctx)
+	return t
+}
+
+func (t *Tasker) ctxDone() {
+	<-t.ctx.Done()
+	if t.verbose {
+		t.Log.Printf("[tasker] received signal on context.Done, aborting")
+	}
+	t.abort = true
 }
 
 // Taskify creates TaskFunc out of plain command wrt given options.
@@ -237,6 +254,10 @@ func (t *Tasker) doSetup() {
 		t.Log.Printf("[tasker] final tick on or before %s", t.until.Format(dateFormat))
 	}
 
+	if t.ctx != nil {
+		go t.ctxDone()
+	}
+
 	sig := make(chan os.Signal)
 	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 
@@ -290,7 +311,11 @@ func (t *Tasker) runTasks(tasks map[string]TaskFunc) {
 		}
 	}
 
-	ctx := context.TODO()
+	ctx := context.Background()
+	if t.ctx != nil {
+		ctx = t.ctx
+	}
+
 	for ref, task := range tasks {
 		t.wg.Add(1)
 		rc := make(chan result)
