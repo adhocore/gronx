@@ -254,8 +254,7 @@ func (t *Tasker) doSetup() {
 		t.Log.Printf("[tasker] final tick on or before %s", t.until.Format(dateFormat))
 	}
 
-	if t.ctx != nil && !t.until.IsZero() {
-		t.ctx, t.ctxCancel = context.WithDeadline(t.ctx, t.until)
+	if t.ctx != nil {
 		go t.ctxDone()
 	}
 
