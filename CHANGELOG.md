@@ -1,3 +1,10 @@
+## [v0.2.6](https://github.com/adhocore/gronx/releases/tag/v0.2.6) (2021-10-14)
+
+### Miscellaneous
+- Fix 'with' languages (Jitendra Adhikari) [_a813b55_](https://github.com/adhocore/gronx/commit/a813b55)
+- Init/setup github codeql (Jitendra Adhikari) [_fe2aa5a_](https://github.com/adhocore/gronx/commit/fe2aa5a)
+
+
 ## [v0.2.5](https://github.com/adhocore/gronx/releases/tag/v0.2.5) (2021-07-25)
 
 ### Bug Fixes
