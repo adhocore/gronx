@@ -4,16 +4,18 @@
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
 [![Go Report](https://goreportcard.com/badge/github.com/adhocore/gronx)](https://goreportcard.com/report/github.com/adhocore/gronx)
 [![Test](https://github.com/adhocore/gronx/actions/workflows/test-action.yml/badge.svg)](https://github.com/adhocore/gronx/actions/workflows/test-action.yml)
+[![Codecov](https://img.shields.io/codecov/c/github/adhocore/gronx/main.svg?style=flat-square)](https://codecov.io/gh/adhocore/gronx)
 [![Donate 15](https://img.shields.io/badge/donate-paypal-blue.svg?style=flat-square&label=donate+15)](https://www.paypal.me/ji10/15usd)
 [![Donate 25](https://img.shields.io/badge/donate-paypal-blue.svg?style=flat-square&label=donate+25)](https://www.paypal.me/ji10/25usd)
 [![Donate 50](https://img.shields.io/badge/donate-paypal-blue.svg?style=flat-square&label=donate+50)](https://www.paypal.me/ji10/50usd)
 [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Lightweight+fast+and+deps+free+cron+expression+parser+for+Golang&url=https://github.com/adhocore/gronx&hashtags=go,golang,parser,cron,cronexpr,cronparser)
 
-
 `gronx` is Golang cron expression parser ported from [adhocore/cron-expr](https://github.com/adhocore/php-cron-expr).
 
 - Zero dependency.
 - Very **fast** because it bails early in case a segment doesn't match.
+
+Find gronx in [pkg.go.dev](https://pkg.go.dev/github.com/adhocore/gronx).
 
 ## Installation
 
