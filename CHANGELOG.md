@@ -1,3 +1,10 @@
+## [v0.2.7](https://github.com/adhocore/gronx/releases/tag/v0.2.7) (2022-06-28)
+
+### Miscellaneous
+- **Workflow**: Run tests on 1.18x (Jitendra)
+- Tests for go v1.17.x, add codecov (Jitendra)
+
+
 ## [v0.2.6](https://github.com/adhocore/gronx/releases/tag/v0.2.6) (2021-10-14)
 
 ### Miscellaneous
