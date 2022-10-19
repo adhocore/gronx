@@ -4,6 +4,7 @@
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
 [![Go Report](https://goreportcard.com/badge/github.com/adhocore/gronx)](https://goreportcard.com/report/github.com/adhocore/gronx)
 [![Test](https://github.com/adhocore/gronx/actions/workflows/test-action.yml/badge.svg)](https://github.com/adhocore/gronx/actions/workflows/test-action.yml)
+[![Lint](https://github.com/adhocore/gronx/actions/workflows/lint-action.yml/badge.svg)](https://github.com/adhocore/gronx/actions/workflows/lint-action.yml)
 [![Codecov](https://img.shields.io/codecov/c/github/adhocore/gronx/main.svg?style=flat-square)](https://codecov.io/gh/adhocore/gronx)
 [![Donate 15](https://img.shields.io/badge/donate-paypal-blue.svg?style=flat-square&label=donate+15)](https://www.paypal.me/ji10/15usd)
 [![Donate 25](https://img.shields.io/badge/donate-paypal-blue.svg?style=flat-square&label=donate+25)](https://www.paypal.me/ji10/25usd)
