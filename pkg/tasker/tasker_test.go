@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -11,13 +12,13 @@ import (
 
 func TestRun(t *testing.T) {
 	t.Run("Run", func(t *testing.T) {
-		tickSec = 2
+		tickSec = 1
 		taskr := New(Option{Verbose: true, Out: "../../test/tasker.out"})
 
 		called := 0
-		taskr.Task("@always", func(ctx context.Context) (int, error) {
-			taskr.Log.Println("task [@always][#1] sleeping 3s")
-			time.Sleep(3 * time.Second)
+		taskr.Task("@always", func(_ context.Context) (int, error) {
+			taskr.Log.Println("task [@always][#1] sleeping 1s")
+			time.Sleep(time.Second)
 			called++
 
 			return 0, nil
@@ -25,7 +26,7 @@ func TestRun(t *testing.T) {
 
 		time.Sleep(time.Second - time.Duration(time.Now().Nanosecond()))
 
-		dur := 5 * time.Second
+		dur := 2500 * time.Millisecond
 		now := time.Now()
 
 		taskr.Until(dur).Run()
@@ -39,9 +40,9 @@ func TestRun(t *testing.T) {
 		start := now.Format(dateFormat)
 		end := now.Add(dur).Format(dateFormat)
 		next1 := now.Add(tickDur).Format(dateFormat)
-		fin1 := now.Add(tickDur + 3*time.Second).Format(dateFormat)
+		fin1 := now.Add(tickDur + 2*time.Second).Format(dateFormat)
 		next2 := now.Add(tickDur + time.Duration(tickSec)*time.Second).Format(dateFormat)
-		fin2 := now.Add(tickDur + time.Duration(tickSec+3)*time.Second).Format(dateFormat)
+		fin2 := now.Add(tickDur + time.Duration(tickSec)*time.Second).Format(dateFormat)
 
 		buffers := []string{
 			start + " [tasker] final tick on or before " + end,
@@ -50,11 +51,11 @@ func TestRun(t *testing.T) {
 			next1 + " [tasker] running 1 due tasks",
 			next1 + " [tasker] next tick on " + next2,
 			next1 + " [tasker] task [@always][#1] running",
-			next1 + " task [@always][#1] sleeping 3s",
+			next1 + " task [@always][#1] sleeping 1s",
 
 			next2 + " [tasker] running 1 due tasks",
 			next2 + " [tasker] task [@always][#1] running",
-			next2 + " task [@always][#1] sleeping 3s",
+			next2 + " task [@always][#1] sleeping 1s",
 
 			fin1 + " [tasker] task [@always][#1] ran successfully",
 			end + " [tasker] timed out, waiting tasks to complete",
@@ -63,7 +64,7 @@ func TestRun(t *testing.T) {
 
 		buf, _ := ioutil.ReadFile("../../test/tasker.out")
 		buffer := string(buf)
-		fmt.Println(buffer)
+		// fmt.Println(buffer)
 
 		for _, expect := range buffers {
 			if !strings.Contains(buffer, expect) {
@@ -89,22 +90,22 @@ func TestTaskify(t *testing.T) {
 }
 
 func TestWithContext(t *testing.T) {
+	// tickSec = 2
 	t.Run("WithContext", func(t *testing.T) {
+		os.Remove("../../test/tasker-ctx.out")
 		ctx, cancel := context.WithCancel(context.Background())
 		taskr := New(Option{Verbose: true, Out: "../../test/tasker-ctx.out"}).WithContext(ctx)
 
 		called := 0
 		taskr.Task("@always", func(ctx context.Context) (int, error) {
-			taskr.Log.Println("task [@always][#1] waiting 3s")
 			called++
 			ct := 0
-		M:
+		Over:
 			for {
 				time.Sleep(300 * time.Millisecond)
 				select {
 				case <-ctx.Done():
-					taskr.Log.Printf("task [@always][#1] received Done signal after %d ms\n", ct*300)
-					break M
+					break Over
 				default:
 					ct++
 				}
@@ -116,12 +117,12 @@ func TestWithContext(t *testing.T) {
 
 		go func() {
 			<-startCh
-			time.Sleep(4 * time.Second)
+			time.Sleep(2100 * time.Millisecond)
 			cancel()
 		}()
 
 		startCh <- true
-		taskr.Until(5 * time.Second).Run()
+		taskr.Until(2200 * time.Millisecond).Run()
 
 		if called != 2 {
 			t.Errorf("task should run 2 times, ran %d times", called)
