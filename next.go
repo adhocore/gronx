@@ -64,7 +64,7 @@ func loop(gron Gronx, segments []string, start time.Time, incl bool) (next time.
 func isPastYear(year string, ref time.Time, incl bool) bool {
 	min := ref.Year()
 	if !incl {
-		min += 1
+		min++
 	}
 	for _, offset := range strings.Split(year, ",") {
 		if strings.Contains(offset, "/") && strings.Index(offset, "*/") != 0 && strings.Index(offset, "0/") != 0 {
