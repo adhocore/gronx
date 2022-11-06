@@ -31,13 +31,12 @@ func (c *SegmentChecker) SetRef(ref time.Time) {
 // CheckDue checks if the cron segment at given position is due.
 // It returns bool or error if any.
 func (c *SegmentChecker) CheckDue(segment string, pos int) (bool, error) {
-	ref := c.GetRef()
+	ref, last := c.GetRef(), -1
 	val, loc := valueByPos(ref, pos), ref.Location()
-	last := time.Date(ref.Year(), ref.Month(), 1, 0, 0, 0, 0, loc).AddDate(0, 1, 0).Add(-time.Nanosecond).Day()
 
 	for _, offset := range strings.Split(segment, ",") {
 		mod := pos == 2 || pos == 4
-		due, err := c.isOffsetDue(offset, val)
+		due, err := c.isOffsetDue(offset, val, pos)
 
 		if due || (!mod && err != nil) {
 			return due, err
@@ -45,7 +44,9 @@ func (c *SegmentChecker) CheckDue(segment string, pos int) (bool, error) {
 		if mod && !strings.ContainsAny(offset, "LW#") {
 			continue
 		}
-
+		if last == -1 {
+			last = time.Date(ref.Year(), ref.Month(), 1, 0, 0, 0, 0, loc).AddDate(0, 1, 0).Add(-time.Nanosecond).Day()
+		}
 		if pos == 2 {
 			due, err = isValidMonthDay(offset, last, ref)
 		} else if pos == 4 {
