@@ -60,21 +60,31 @@ func (c *SegmentChecker) CheckDue(segment string, pos int) (bool, error) {
 	return false, nil
 }
 
-func (c *SegmentChecker) isOffsetDue(offset string, val int) (bool, error) {
+func (c *SegmentChecker) isOffsetDue(offset string, val, pos int) (bool, error) {
+	if offset == "*" || offset == "?" {
+		return true, nil
+	}
 	if strings.Contains(offset, "/") {
 		return inStep(val, offset)
 	}
 	if strings.Contains(offset, "-") {
+		if pos == 4 {
+			offset = strings.Replace(offset, "7-", "0-", 1)
+		}
 		return inRange(val, offset)
 	}
 
-	if val == 0 || offset == "0" {
+	if pos != 4 && (val == 0 || offset == "0") {
 		return offset == "0" && val == 0, nil
 	}
 
 	nval, err := strconv.Atoi(offset)
 	if err != nil {
 		return false, err
+	}
+
+	if pos == 4 && nval == 7 {
+		nval = 0
 	}
 
 	return nval == val, nil
