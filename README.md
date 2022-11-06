@@ -47,6 +47,21 @@ gron.IsDue(expr) // true|false, nil
 gron.IsDue(expr, time.Date(2021, time.April, 1, 1, 1, 0, 0, time.UTC)) // true|false, nil
 ```
 
+### Next Tick
+
+To find out when is the cron due next (onwards):
+```go
+allowCurrent = true // includes current time as well
+nextTime, err := gron.NextTick(expr, allowCurrent) // gives time.Time, err
+
+// OR, next tick after certain reference time
+refTime = time.Date(2022, time.November, 1, 1, 1, 0, 0, time.UTC)
+allowCurrent = false // excludes the ref time
+nextTime, err := gron.NextTickAfter(expr, refTime, allowCurrent) // gives time.Time, err
+```
+
+### Standalone Daemon
+
 In a more practical level, you would use this tool to manage and invoke jobs in app itself and not
 mess around with `crontab` for each and every new tasks/jobs. ~~It doesn't yet replace that but rather supplements it.
 There is a plan though [#1](https://github.com/adhocore/gronx/issues/1)~~.
