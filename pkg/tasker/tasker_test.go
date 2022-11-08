@@ -10,6 +10,28 @@ import (
 	"time"
 )
 
+func TestNew(t *testing.T) {
+	exit = func (code int) {}
+	t.Run("New invalid Tz", func (t *testing.T) {
+		New(Option{Tz: "Local/Xyz"})
+	})
+	t.Run("New invalid Out", func (t *testing.T) {
+		New(Option{Out: "/a/b/c/d/e/f/out.log"})
+	})
+	t.Run("Invalid Until", func (t *testing.T) {
+		var zero time.Time
+
+		taskr := New(Option{})
+		taskr.Until(time.Now().Add(time.Minute))
+
+		taskr.Until(zero)
+		taskr.Until(1)
+		if !taskr.until.IsZero() {
+			t.Error("tasker.until should be zero")
+		}
+	})
+}
+
 func TestRun(t *testing.T) {
 	t.Run("Run", func(t *testing.T) {
 		tickSec = 1
@@ -86,6 +108,18 @@ func TestTaskify(t *testing.T) {
 		if err != nil {
 			t.Errorf("expected no error, got %v", err)
 		}
+
+		t.Run("Taskify err", func (t *testing.T) {
+			ctx := context.TODO()
+			taskr := New(Option{})
+			code, err := taskr.Taskify("false", Option{})(ctx)
+			if code != 1 {
+				t.Errorf("expected code 127, got %d", code)
+			}
+			if err == nil {
+				t.Error("expected error")
+			}
+		})
 	})
 }
 
