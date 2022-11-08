@@ -33,9 +33,11 @@ func NextTickAfter(expr string, start time.Time, inclRefTime bool) (time.Time, e
 		return next, fmt.Errorf("unreachable year segment: %s", segments[5])
 	}
 
-	next, err = loop(gron, segments, next, inclRefTime)
-	if due, _ = gron.IsDue(expr, next); due {
-		err = nil
+	if next, err = loop(gron, segments, next, inclRefTime); err != nil {
+		// Ignore superfluous err
+		if due, _ = gron.IsDue(expr, next); due {
+			err = nil
+		}
 	}
 	return next, err
 }
@@ -104,18 +106,17 @@ func bumpUntilDue(c Checker, segment string, pos int, ref time.Time) (time.Time,
 }
 
 func bump(ref time.Time, pos int) time.Time {
-	inc := ref
 	switch pos {
 	case 0:
-		inc = inc.Add(time.Minute)
+		ref = ref.Add(time.Minute)
 	case 1:
-		inc = inc.Add(time.Hour)
+		ref = ref.Add(time.Hour)
 	case 2, 4:
-		inc = inc.AddDate(0, 0, 1)
+		ref = ref.AddDate(0, 0, 1)
 	case 3:
-		inc = inc.AddDate(0, 1, 0)
+		ref = ref.AddDate(0, 1, 0)
 	case 5:
-		inc = inc.AddDate(1, 0, 0)
+		ref = ref.AddDate(1, 0, 0)
 	}
-	return inc
+	return ref
 }
