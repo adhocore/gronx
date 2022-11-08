@@ -3,6 +3,7 @@ package gronx
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -61,18 +62,24 @@ func loop(gron Gronx, segments []string, start time.Time, incl bool) (next time.
 	return start, errors.New("tried so hard")
 }
 
+var dashRe = regexp.MustCompile(`/.*$`)
+
 func isPastYear(year string, ref time.Time, incl bool) bool {
+	if year == "*" || year == "?" {
+		return false
+	}
+
 	min := ref.Year()
 	if !incl {
 		min++
 	}
 	for _, offset := range strings.Split(year, ",") {
-		if strings.Contains(offset, "/") && strings.Index(offset, "*/") != 0 && strings.Index(offset, "0/") != 0 {
+		if strings.Index(offset, "*/") == 0 || strings.Index(offset, "0/") == 0 {
 			return false
 		}
-		for _, part := range strings.Split(offset, "-") {
+		for _, part := range strings.Split(dashRe.ReplaceAllString(offset, ""), "-") {
 			val, err := strconv.Atoi(part)
-			if err != nil || val > min {
+			if err != nil || val >= min {
 				return false
 			}
 		}
