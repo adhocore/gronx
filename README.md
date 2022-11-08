@@ -52,12 +52,12 @@ gron.IsDue(expr, time.Date(2021, time.April, 1, 1, 1, 0, 0, time.UTC)) // true|f
 To find out when is the cron due next (onwards):
 ```go
 allowCurrent = true // includes current time as well
-nextTime, err := gron.NextTick(expr, allowCurrent) // gives time.Time, err
+nextTime, err := gron.NextTick(expr, allowCurrent) // gives time.Time, error
 
 // OR, next tick after certain reference time
 refTime = time.Date(2022, time.November, 1, 1, 1, 0, 0, time.UTC)
 allowCurrent = false // excludes the ref time
-nextTime, err := gron.NextTickAfter(expr, refTime, allowCurrent) // gives time.Time, err
+nextTime, err := gron.NextTickAfter(expr, refTime, allowCurrent) // gives time.Time, error
 ```
 
 ### Standalone Daemon
