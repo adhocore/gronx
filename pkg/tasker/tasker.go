@@ -58,6 +58,8 @@ type result struct {
 	err  error
 }
 
+var exit = os.Exit
+
 // New inits a task manager.
 // It returns Tasker.
 func New(opt Option) *Tasker {
@@ -71,18 +73,21 @@ func New(opt Option) *Tasker {
 
 	loc, err := time.LoadLocation(opt.Tz)
 	if err != nil {
-		log.Fatalf("invalid tz location: %s", opt.Tz)
+		log.Printf("invalid tz location: %s", opt.Tz)
+		exit(1)
 	}
 
 	logger := log.New(os.Stderr, "", log.LstdFlags)
 	if opt.Out != "" {
 		if _, err := os.Stat(filepath.Dir(opt.Out)); err != nil {
-			log.Fatalf("output dir does not exist: %s", filepath.Base(opt.Out))
+			log.Printf("output dir does not exist: %s", filepath.Base(opt.Out))
+			exit(1)
 		}
 
 		file, err := os.OpenFile(opt.Out, os.O_CREATE|os.O_WRONLY, 0777)
 		if err != nil {
-			log.Fatalf("can't open output file: %s", opt.Out)
+			log.Printf("can't open output file: %s", opt.Out)
+			exit(1)
 		}
 
 		logger = log.New(file, "", log.LstdFlags)
@@ -197,7 +202,8 @@ func (t *Tasker) Until(until interface{}) *Tasker {
 	case time.Time:
 		t.until = until
 	default:
-		log.Fatalf("until must be time.Duration or time.Time, got: %v", reflect.TypeOf(until))
+		log.Printf("until must be time.Duration or time.Time, got: %v", reflect.TypeOf(until))
+		exit(1)
 	}
 
 	return t

@@ -15,7 +15,8 @@ import (
 func MustParseTaskfile(opts Option) []Task {
 	file, err := os.Open(opts.File)
 	if err != nil {
-		log.Fatalf("[parser] can't open file: %s", opts.File)
+		log.Printf("[parser] can't open file: %s", opts.File)
+		exit(1)
 	}
 	defer file.Close()
 
@@ -30,7 +31,8 @@ func MustParseTaskfile(opts Option) []Task {
 
 	if err := scan.Err(); err != nil {
 		if len(lines) == 0 {
-			log.Fatalf("[parser] error reading taskfile: %v", err)
+			log.Printf("[parser] error reading taskfile: %v", err)
+			exit(1)
 		}
 
 		log.Println(err)
