@@ -8,6 +8,10 @@
 *   *  *  * * echo '[task 5] *   *  *  * *' > test/task5.out
 * * * * * echo '[task 6] it should go to outfile' && invalid-cmd
 
+# failure tasks
+@always xgronx
+@always false
+
 # below are invalid
 @invalid
 * * * * *

@@ -9,40 +9,46 @@ import (
 	"github.com/adhocore/gronx/pkg/tasker"
 )
 
-func main() {
-	opt := mustGetOption()
-	taskr := tasker.New(opt)
+var exit = os.Exit
+var tick = time.Minute
 
-	for _, task := range tasker.MustParseTaskfile(opt) {
-		taskr.Task(task.Expr, taskr.Taskify(task.Cmd, opt))
-	}
+var opt tasker.Option
 
-	if opt.Until > 0 {
-		taskr.Until(time.Duration(opt.Until) * time.Minute)
-	}
-
-	taskr.Run()
-}
-
-func mustGetOption() tasker.Option {
-	var opt tasker.Option
-
-	flag.StringVar(&opt.File, "file", "", "The task file in crontab format")
+func init() {
+	flag.StringVar(&opt.File, "file", "", "The task file in crontab format (without user)")
 	flag.StringVar(&opt.Tz, "tz", "Local", "The timezone to use for tasks")
 	flag.StringVar(&opt.Shell, "shell", tasker.Shell()[0], "The shell to use for running tasks")
 	flag.StringVar(&opt.Out, "out", "", "The fullpath to file where output from tasks are sent to")
 	flag.BoolVar(&opt.Verbose, "verbose", false, "The verbose mode outputs as much as possible")
 	flag.Int64Var(&opt.Until, "until", 0, "The timeout for task daemon in minutes")
+}
+
+func main() {
+	mustParseOption()
+
+	taskr := tasker.New(opt)
+	for _, task := range tasker.MustParseTaskfile(opt) {
+		taskr.Task(task.Expr, taskr.Taskify(task.Cmd, opt))
+	}
+
+	if opt.Until > 0 {
+		taskr.Until(time.Duration(opt.Until) * tick)
+	}
+
+	taskr.Run()
+}
+
+func mustParseOption() {
+	opt = tasker.Option{}
 	flag.Parse()
 
 	if opt.File == "" {
 		flag.Usage()
-		os.Exit(1)
+		exit(1)
 	}
 
 	if _, err := os.Stat(opt.File); err != nil {
-		log.Fatalf("can't read taskfile: %s", opt.File)
+		log.Printf("can't read taskfile: %s", opt.File)
+		exit(1)
 	}
-
-	return opt
 }
