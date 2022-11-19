@@ -6,9 +6,7 @@
 [![Test](https://github.com/adhocore/gronx/actions/workflows/test-action.yml/badge.svg)](https://github.com/adhocore/gronx/actions/workflows/test-action.yml)
 [![Lint](https://github.com/adhocore/gronx/actions/workflows/lint-action.yml/badge.svg)](https://github.com/adhocore/gronx/actions/workflows/lint-action.yml)
 [![Codecov](https://img.shields.io/codecov/c/github/adhocore/gronx/main.svg?style=flat-square)](https://codecov.io/gh/adhocore/gronx)
-[![Donate 15](https://img.shields.io/badge/donate-paypal-blue.svg?style=flat-square&label=donate+15)](https://www.paypal.me/ji10/15usd)
-[![Donate 25](https://img.shields.io/badge/donate-paypal-blue.svg?style=flat-square&label=donate+25)](https://www.paypal.me/ji10/25usd)
-[![Donate 50](https://img.shields.io/badge/donate-paypal-blue.svg?style=flat-square&label=donate+50)](https://www.paypal.me/ji10/50usd)
+[![Support](https://img.shields.io/static/v1?label=Support&message=%E2%9D%A4&logo=GitHub)](https://github.com/sponsors/adhocore)
 [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Lightweight+fast+and+deps+free+cron+expression+parser+for+Golang&url=https://github.com/adhocore/gronx&hashtags=go,golang,parser,cron,cronexpr,cronparser)
 
 `gronx` is Golang cron expression parser ported from [adhocore/cron-expr](https://github.com/adhocore/php-cron-expr) with task runner
