@@ -1,6 +1,7 @@
 package gronx
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -30,18 +31,16 @@ func (c *SegmentChecker) SetRef(ref time.Time) {
 
 // CheckDue checks if the cron segment at given position is due.
 // It returns bool or error if any.
-func (c *SegmentChecker) CheckDue(segment string, pos int) (bool, error) {
+func (c *SegmentChecker) CheckDue(segment string, pos int) (due bool, err error) {
 	ref, last := c.GetRef(), -1
 	val, loc := valueByPos(ref, pos), ref.Location()
 
 	for _, offset := range strings.Split(segment, ",") {
-		mod := pos == 2 || pos == 4
-		due, err := c.isOffsetDue(offset, val, pos)
-
-		if due || (!mod && err != nil) {
-			return due, err
+		mod := (pos == 2 || pos == 4) && strings.ContainsAny(offset, "LW#")
+		if due, err = c.isOffsetDue(offset, val, pos); due || (!mod && err != nil) {
+			return
 		}
-		if mod && !strings.ContainsAny(offset, "LW#") {
+		if !mod {
 			continue
 		}
 		if last == -1 {
@@ -64,14 +63,16 @@ func (c *SegmentChecker) isOffsetDue(offset string, val, pos int) (bool, error) 
 	if offset == "*" || offset == "?" {
 		return true, nil
 	}
+
+	bounds := boundsByPos(pos)
 	if strings.Contains(offset, "/") {
-		return inStep(val, offset)
+		return inStep(val, offset, bounds)
 	}
 	if strings.Contains(offset, "-") {
 		if pos == 4 {
 			offset = strings.Replace(offset, "7-", "0-", 1)
 		}
-		return inRange(val, offset)
+		return inRange(val, offset, bounds)
 	}
 
 	if pos != 4 && (val == 0 || offset == "0") {
@@ -82,12 +83,11 @@ func (c *SegmentChecker) isOffsetDue(offset string, val, pos int) (bool, error) 
 	if err != nil {
 		return false, err
 	}
-
-	if pos == 4 && nval == 7 {
-		nval = 0
+	if nval < bounds[0] || nval > bounds[1] {
+		return false, fmt.Errorf("segment#%d: '%s' out of bounds(%d, %d)", pos, offset, bounds[0], bounds[1])
 	}
 
-	return nval == val, nil
+	return nval == val || (pos == 4 && nval == 7 && val == 0), nil
 }
 
 func valueByPos(ref time.Time, pos int) int {
@@ -107,4 +107,23 @@ func valueByPos(ref time.Time, pos int) int {
 	}
 
 	return 0
+}
+
+func boundsByPos(pos int) []int {
+	switch pos {
+	case 0:
+		return []int{0, 59}
+	case 1:
+		return []int{0, 23}
+	case 2:
+		return []int{1, 31}
+	case 3:
+		return []int{1, 12}
+	case 4:
+		return []int{0, 7}
+	case 5:
+		return []int{1, 9999}
+	}
+
+	return []int{0, 0}
 }

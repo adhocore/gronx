@@ -2,12 +2,13 @@ package gronx
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
 )
 
-func inStep(val int, s string) (bool, error) {
+func inStep(val int, s string, bounds []int) (bool, error) {
 	parts := strings.Split(s, "/")
 	step, err := strconv.Atoi(parts[1])
 	if err != nil {
@@ -34,10 +35,14 @@ func inStep(val int, s string) (bool, error) {
 		}
 	}
 
+	if end < start || start < bounds[0] || end > bounds[1] {
+		return false, fmt.Errorf("step '%s' out of bounds(%d, %d)", parts[0], bounds[0], bounds[1])
+	}
+
 	return inStepRange(val, start, end, step), nil
 }
 
-func inRange(val int, s string) (bool, error) {
+func inRange(val int, s string, bounds []int) (bool, error) {
 	parts := strings.Split(s, "-")
 	start, err := strconv.Atoi(parts[0])
 	if err != nil {
@@ -47,6 +52,10 @@ func inRange(val int, s string) (bool, error) {
 	end, err := strconv.Atoi(parts[1])
 	if err != nil {
 		return false, err
+	}
+
+	if end < start || start < bounds[0] || end > bounds[1] {
+		return false, fmt.Errorf("range '%s' out of bounds(%d, %d)", s, bounds[0], bounds[1])
 	}
 
 	return start <= val && val <= end, nil
