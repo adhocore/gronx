@@ -49,13 +49,28 @@ func TestIsValid(t *testing.T) {
 
 	t.Run("is valid", func(t *testing.T) {
 		if !gron.IsValid("5,10-20/4,55 * * * *") {
-			t.Errorf("expected false, got true")
+			t.Errorf("expected true, got false")
 		}
 	})
 
 	t.Run("is not valid", func(t *testing.T) {
 		if gron.IsValid("A-B * * * *") {
-			t.Errorf("expected true, got false")
+			t.Errorf("expected false, got true")
+		}
+		if gron.IsValid("60 * * * *") {
+			t.Errorf("expected false, got true")
+		}
+		if gron.IsValid("* 30 * * *") {
+			t.Errorf("expected false, got true")
+		}
+		if gron.IsValid("* * 99 * *") {
+			t.Errorf("expected false, got true")
+		}
+		if gron.IsValid("* * * 13 *") {
+			t.Errorf("expected false, got true")
+		}
+		if gron.IsValid("* * * * 8") {
+			t.Errorf("expected false, got true")
 		}
 	})
 }
