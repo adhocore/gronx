@@ -72,6 +72,13 @@ func TestIsValid(t *testing.T) {
 		if gron.IsValid("* * * * 8") {
 			t.Errorf("expected false, got true")
 		}
+
+		if gron.IsValid("60-65 * * * *") {
+			t.Errorf("expected false, got true")
+		}
+		if gron.IsValid("* 24-28/2 * * *") {
+			t.Errorf("expected false, got true")
+		}
 	})
 }
 
