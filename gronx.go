@@ -70,11 +70,19 @@ func (g *Gronx) IsDue(expr string, ref ...time.Time) (bool, error) {
 }
 
 // Segments splits expr into array array of cron parts.
+// If expression contains 5 parts or 6th part is year like, it prepends a second.
 // It returns array or error.
 func Segments(expr string) ([]string, error) {
 	segs := normalize(expr)
-	if len(segs) < 5 || len(segs) > 6 {
-		return []string{}, errors.New("expr should contain 5-6 segments separated by space")
+	slen := len(segs)
+	if slen < 5 || slen > 7 {
+		return []string{}, errors.New("expr should contain 5-7 segments separated by space")
+	}
+
+	// Prepend second if required
+	prepend := slen == 5 || (slen == 6 && yearRe.MatchString(segs[5]))
+	if prepend {
+		segs = append([]string{"0"}, segs...)
 	}
 
 	return segs, nil
@@ -82,8 +90,8 @@ func Segments(expr string) ([]string, error) {
 
 // SegmentsDue checks if all cron parts are due.
 // It returns bool. You should use IsDue(expr) instead.
-func (g *Gronx) SegmentsDue(segments []string) (bool, error) {
-	for pos, seg := range segments {
+func (g *Gronx) SegmentsDue(segs []string) (bool, error) {
+	for pos, seg := range segs {
 		if seg == "*" || seg == "?" {
 			continue
 		}
