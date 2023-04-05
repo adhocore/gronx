@@ -35,7 +35,7 @@ func inStep(val int, s string, bounds []int) (bool, error) {
 		}
 	}
 
-	if end < start || start < bounds[0] || end > bounds[1] {
+	if (len(sub) > 1 && end < start) || start < bounds[0] || end > bounds[1] {
 		return false, fmt.Errorf("step '%s' out of bounds(%d, %d)", parts[0], bounds[0], bounds[1])
 	}
 
