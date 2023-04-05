@@ -7,7 +7,7 @@ import (
 )
 
 func TestNextTick(t *testing.T) {
-	exp := "* * * * *"
+	exp := "* * * * * *"
 	t.Run("next tick incl "+exp, func(t *testing.T) {
 		now := time.Now().Format(CronDateFormat)
 		next, _ := NextTick(exp, true)
@@ -28,8 +28,8 @@ func TestNextTick(t *testing.T) {
 
 func TestNextTickAfter(t *testing.T) {
 	t.Run("next run after", func(t *testing.T) {
-		for _, test := range testcases() {
-			t.Run("next run after incl "+test.Expr, func(t *testing.T) {
+		for i, test := range testcases() {
+			t.Run(fmt.Sprintf("next run after incl #%d: %s", i, test.Expr), func(t *testing.T) {
 				ref, _ := time.Parse("2006-01-02 15:04:05", test.Ref)
 				if next, err := NextTickAfter(test.Expr, ref, true); err == nil {
 					actual := next.Format("2006-01-02 15:04:05")
@@ -41,8 +41,8 @@ func TestNextTickAfter(t *testing.T) {
 		}
 
 		gron := New()
-		for _, test := range testcases() {
-			t.Run("next run after excl "+test.Expr, func(t *testing.T) {
+		for i, test := range testcases() {
+			t.Run(fmt.Sprintf("next run after excl #%d: %s", i, test.Expr), func(t *testing.T) {
 				ref, _ := time.Parse(FullDateFormat, test.Ref)
 				next, err := NextTickAfter(test.Expr, ref, false)
 				if err == nil {

@@ -11,14 +11,14 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	exit = func (code int) {}
-	t.Run("New invalid Tz", func (t *testing.T) {
+	exit = func(code int) {}
+	t.Run("New invalid Tz", func(t *testing.T) {
 		New(Option{Tz: "Local/Xyz"})
 	})
-	t.Run("New invalid Out", func (t *testing.T) {
+	t.Run("New invalid Out", func(t *testing.T) {
 		New(Option{Out: "/a/b/c/d/e/f/out.log"})
 	})
-	t.Run("Invalid Until", func (t *testing.T) {
+	t.Run("Invalid Until", func(t *testing.T) {
 		var zero time.Time
 
 		taskr := New(Option{})
@@ -38,8 +38,8 @@ func TestRun(t *testing.T) {
 		taskr := New(Option{Verbose: true, Out: "../../test/tasker.out"})
 
 		called := 0
-		taskr.Task("@always", func(_ context.Context) (int, error) {
-			taskr.Log.Println("task [@always][#1] sleeping 1s")
+		taskr.Task("* * * * * *", func(_ context.Context) (int, error) {
+			taskr.Log.Println("task [* * * * * *][#1] sleeping 1s")
 			time.Sleep(time.Second)
 			called++
 
@@ -72,21 +72,21 @@ func TestRun(t *testing.T) {
 
 			next1 + " [tasker] running 1 due tasks",
 			next1 + " [tasker] next tick on " + next2,
-			next1 + " [tasker] task [@always][#1] running",
-			next1 + " task [@always][#1] sleeping 1s",
+			next1 + " [tasker] task [* * * * * *][#1] running",
+			next1 + " task [* * * * * *][#1] sleeping 1s",
 
 			next2 + " [tasker] running 1 due tasks",
-			next2 + " [tasker] task [@always][#1] running",
-			next2 + " task [@always][#1] sleeping 1s",
+			next2 + " [tasker] task [* * * * * *][#1] running",
+			next2 + " task [* * * * * *][#1] sleeping 1s",
 
-			fin1 + " [tasker] task [@always][#1] ran successfully",
+			fin1 + " [tasker] task [* * * * * *][#1] ran successfully",
 			end + " [tasker] timed out, waiting tasks to complete",
-			fin2 + " [tasker] task [@always][#1] ran successfully",
+			fin2 + " [tasker] task [* * * * * *][#1] ran successfully",
 		}
 
 		buf, _ := ioutil.ReadFile("../../test/tasker.out")
 		buffer := string(buf)
-		// fmt.Println(buffer)
+		fmt.Println(buffer)
 
 		for _, expect := range buffers {
 			if !strings.Contains(buffer, expect) {
@@ -109,7 +109,7 @@ func TestTaskify(t *testing.T) {
 			t.Errorf("expected no error, got %v", err)
 		}
 
-		t.Run("Taskify err", func (t *testing.T) {
+		t.Run("Taskify err", func(t *testing.T) {
 			ctx := context.TODO()
 			taskr := New(Option{})
 			code, err := taskr.Taskify("false", Option{})(ctx)
@@ -131,7 +131,7 @@ func TestWithContext(t *testing.T) {
 		taskr := New(Option{Verbose: true, Out: "../../test/tasker-ctx.out"}).WithContext(ctx)
 
 		called := 0
-		taskr.Task("@always", func(ctx context.Context) (int, error) {
+		taskr.Task("* * * * * *", func(ctx context.Context) (int, error) {
 			called++
 			ct := 0
 		Over:
@@ -163,7 +163,6 @@ func TestWithContext(t *testing.T) {
 		}
 
 		buf, _ := ioutil.ReadFile("../../test/tasker-ctx.out")
-		buffer := string(buf)
-		fmt.Println(buffer)
+		fmt.Println(string(buf))
 	})
 }
