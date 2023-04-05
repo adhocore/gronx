@@ -9,7 +9,7 @@
 [![Support](https://img.shields.io/static/v1?label=Support&message=%E2%9D%A4&logo=GitHub)](https://github.com/sponsors/adhocore)
 [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Lightweight+fast+and+deps+free+cron+expression+parser+for+Golang&url=https://github.com/adhocore/gronx&hashtags=go,golang,parser,cron,cronexpr,cronparser)
 
-`gronx` is Golang cron expression parser ported from [adhocore/cron-expr](https://github.com/adhocore/php-cron-expr) with task runner
+`gronx` is Golang [cron expression](#cron-expression) parser ported from [adhocore/cron-expr](https://github.com/adhocore/php-cron-expr) with task runner
 and daemon that supports crontab like task list file. Use it programatically in Golang or as standalone binary instead of crond.
 
 - Zero dependency.
@@ -121,6 +121,7 @@ func main() {
 ```
 
 ### Task Daemon
+
 It can also be used as standalone task daemon instead of programmatic usage for Golang application.
 
 First, just install tasker command:
@@ -139,6 +140,7 @@ tasker -file path/to/taskfile
 > You can pass more options to control the behavior of task daemon, see below.
 
 ####  Tasker command options:
+
 ```txt
 -file string <required>
     The task file in crontab format
@@ -167,6 +169,7 @@ tasker -tz America/New_York -file path/to/taskfile -shell zsh # run all tasks us
 > Same timezone applies for all tasks currently and it might support overriding timezone per task in future release.
 
 #### Notes on Windows
+
 In Windows if it doesn't find `bash.exe` or `git-bash.exe` it will use `powershell`.
 `powershell` may not be compatible with Unix flavored commands. Also to note:
 you can't do chaining with `cmd1 && cmd2` but rather `cmd1 ; cmd2`.
@@ -174,29 +177,40 @@ you can't do chaining with `cmd1 && cmd2` but rather `cmd1 ; cmd2`.
 ---
 ### Cron Expression
 
-Cron expression normally consists of 5 segments viz:
+A complete cron expression consists of 7 segments viz:
+```
+<second> <minute> <hour> <day> <month> <weekday> <year>
+```
+
+However only 5 will do and this is most commonly used. 5 segments are interpreted as:
 ```
 <minute> <hour> <day> <month> <weekday>
 ```
-and sometimes there can be 6th segment for `<year>` at the end.
+in which case a default value of 0 is prepended for `<second>` position.
 
-For each segments you can have multiple choices separated by comma:
-> Eg: `0,30 * * * *` means either 0th or 30th minute.
+In a 6 segments expression, if 6th segment matches `<year>` (i.e 4 digits at least) it will be interpreted as:
+```
+<minute> <hour> <day> <month> <weekday> <year>
+```
+and a default value of 0 is prepended for `<second>` position.
 
-To specify range of values you can use dash:
-> Eg: `10-15 * * * *` means 10th, 11th, 12th, 13th, 14th and 15th minute.
+For each segments you can have **multiple choices** separated by comma:
+> Eg: `0 0,30 * * * *` means either 0th or 30th minute.
 
-To specify range of step you can combine a dash and slash:
-> Eg: `10-15/2 * * * *` means every 2 minutes between 10 and 15 i.e 10th, 12th and 14th minute.
+To specify **range of values** you can use dash:
+> Eg: `0 10-15 * * * *` means 10th, 11th, 12th, 13th, 14th and 15th minute.
 
-For the 3rd and 5th segment, there are additional [modifiers](#modifiers) (optional).
+To specify **range of step** you can combine a dash and slash:
+> Eg: `0 10-15/2 * * * *` means every 2 minutes between 10 and 15 i.e 10th, 12th and 14th minute.
 
-And if you want, you can mix them up:
-> `5,12-20/4,55 * * * *` matches if any one of `5` or `12-20/4` or `55` matches the minute.
+For the `<day>` and `<weekday>` segment, there are additional [**modifiers**](#modifiers) (optional).
+
+And if you want, you can mix the multiple choices, ranges and steps in a single expression:
+> `0 5,12-20/4,55 * * * *` matches if any one of `5` or `12-20/4` or `55` matches the minute.
 
 ### Real Abbreviations
 
-You can use real abbreviations for month and week days. eg: `JAN`, `dec`, `fri`, `SUN`
+You can use real abbreviations (3 chars) for month and week days. eg: `JAN`, `dec`, `fri`, `SUN`
 
 ### Tags
 
@@ -212,8 +226,13 @@ Following tags are available and they are converted to real cron expressions bef
 - *@15minutes* - every 15 minutes
 - *@30minutes* - every 30 minutes
 - *@always* - every minute
+- *@everysecond* - every second
+
+> For BC reasons, `@always` still means every minute for now, in future release it may mean every seconds instead.
 
 ```go
+// Use tags like so:
+gron.IsDue("@hourly")
 gron.IsDue("@5minutes")
 ```
 
@@ -221,10 +240,10 @@ gron.IsDue("@5minutes")
 
 Following modifiers supported
 
-- *Day of Month / 3rd segment:*
+- *Day of Month / 3rd of 5 segments / 4th of 6+ segments:*
     - `L` stands for last day of month (eg: `L` could mean 29th for February in leap year)
     - `W` stands for closest week day (eg: `10W` is closest week days (MON-FRI) to 10th date)
-- *Day of Week / 5th segment:*
+- *Day of Week / 5th of segment / 6th of 6+ segments:*
     - `L` stands for last weekday of month (eg: `2L` is last monday)
     - `#` stands for nth day of week in the month (eg: `1#2` is second sunday)
 
@@ -240,6 +259,7 @@ release managed by [please](https://github.com/adhocore/please).
 
 ---
 ### Other projects
+
 My other golang projects you might find interesting and useful:
 
 - [**urlsh**](https://github.com/adhocore/urlsh) - URL shortener and bookmarker service with UI, API, Cache, Hits Counter and forwarder using postgres and redis in backend, bulma in frontend; has [web](https://urlssh.xyz) and cli client
