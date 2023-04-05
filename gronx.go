@@ -25,10 +25,13 @@ var expressions = map[string]string{
 	"@10minutes": "*/10 * * * *",
 	"@15minutes": "*/15 * * * *",
 	"@30minutes": "0,30 * * * *",
+
+	"@everysecond": "* * * * * *",
 }
 
 // SpaceRe is regex for whitespace.
 var SpaceRe = regexp.MustCompile(`\s+`)
+var yearRe = regexp.MustCompile(`\d{4}`)
 
 func normalize(expr string) []string {
 	expr = strings.Trim(expr, " \t")
