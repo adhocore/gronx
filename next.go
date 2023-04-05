@@ -22,15 +22,15 @@ func NextTick(expr string, inclRefTime bool) (time.Time, error) {
 
 // NextTickAfter gives next run time from the provided time.Time
 func NextTickAfter(expr string, start time.Time, inclRefTime bool) (time.Time, error) {
-	gron, next := New(), start.Truncate(time.Minute)
+	gron, next := New(), start.Truncate(time.Second)
 	due, err := gron.IsDue(expr, start)
 	if err != nil || (due && inclRefTime) {
 		return start, err
 	}
 
 	segments, _ := Segments(expr)
-	if len(segments) > 5 && isPastYear(segments[5], next, inclRefTime) {
-		return next, fmt.Errorf("unreachable year segment: %s", segments[5])
+	if len(segments) > 6 && isPastYear(segments[6], next, inclRefTime) {
+		return next, fmt.Errorf("unreachable year segment: %s", segments[6])
 	}
 
 	if next, err = loop(gron, segments, next, inclRefTime); err != nil {
@@ -55,7 +55,7 @@ func loop(gron Gronx, segments []string, start time.Time, incl bool) (next time.
 				goto over
 			}
 		}
-		if !incl && next.Format(CronDateFormat) == start.Format(CronDateFormat) {
+		if !incl && next.Format(FullDateFormat) == start.Format(FullDateFormat) {
 			next, _, err = bumpUntilDue(gron.C, segments[0], 0, next.Add(time.Minute))
 			continue
 		}
@@ -89,10 +89,10 @@ func isPastYear(year string, ref time.Time, incl bool) bool {
 	return true
 }
 
-var limit = map[int]int{0: 60, 1: 24, 2: 31, 3: 12, 4: 366, 5: 100}
+var limit = map[int]int{0: 60, 1: 60, 2: 24, 3: 31, 4: 12, 5: 366, 6: 100}
 
 func bumpUntilDue(c Checker, segment string, pos int, ref time.Time) (time.Time, bool, error) {
-	// <minute> <hour> <day> <month> <weekday>
+	// <second> <minute> <hour> <day> <month> <weekday> <year>
 	iter := limit[pos]
 	for iter > 0 {
 		c.SetRef(ref)
@@ -108,14 +108,16 @@ func bumpUntilDue(c Checker, segment string, pos int, ref time.Time) (time.Time,
 func bump(ref time.Time, pos int) time.Time {
 	switch pos {
 	case 0:
-		ref = ref.Add(time.Minute)
+		ref = ref.Add(time.Second)
 	case 1:
+		ref = ref.Add(time.Minute)
+	case 2:
 		ref = ref.Add(time.Hour)
-	case 2, 4:
+	case 3, 5:
 		ref = ref.AddDate(0, 0, 1)
-	case 3:
+	case 4:
 		ref = ref.AddDate(0, 1, 0)
-	case 5:
+	case 6:
 		ref = ref.AddDate(1, 0, 0)
 	}
 	return ref
