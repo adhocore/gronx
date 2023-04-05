@@ -107,7 +107,17 @@ func (g *Gronx) SegmentsDue(segs []string) (bool, error) {
 // IsValid checks if cron expression is valid.
 // It returns bool.
 func (g *Gronx) IsValid(expr string) bool {
-	_, err := g.IsDue(expr)
+	segs, err := Segments(expr)
+	if err != nil {
+		return false
+	}
 
-	return err == nil
+	g.C.SetRef(time.Now())
+	for pos, seg := range segs {
+		if _, err := g.C.CheckDue(seg, pos); err != nil {
+			return false
+		}
+	}
+
+	return true
 }
