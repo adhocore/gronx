@@ -87,22 +87,24 @@ func (c *SegmentChecker) isOffsetDue(offset string, val, pos int) (bool, error) 
 		return false, fmt.Errorf("segment#%d: '%s' out of bounds(%d, %d)", pos, offset, bounds[0], bounds[1])
 	}
 
-	return nval == val || (pos == 4 && nval == 7 && val == 0), nil
+	return nval == val || (isWeekDay && nval == 7 && val == 0), nil
 }
 
 func valueByPos(ref time.Time, pos int) int {
 	switch pos {
 	case 0:
-		return ref.Minute()
+		return ref.Second()
 	case 1:
-		return ref.Hour()
+		return ref.Minute()
 	case 2:
-		return ref.Day()
+		return ref.Hour()
 	case 3:
-		return int(ref.Month())
+		return ref.Day()
 	case 4:
-		return int(ref.Weekday())
+		return int(ref.Month())
 	case 5:
+		return int(ref.Weekday())
+	case 6:
 		return ref.Year()
 	}
 
@@ -111,17 +113,17 @@ func valueByPos(ref time.Time, pos int) int {
 
 func boundsByPos(pos int) []int {
 	switch pos {
-	case 0:
+	case 0, 1:
 		return []int{0, 59}
-	case 1:
-		return []int{0, 23}
 	case 2:
-		return []int{1, 31}
+		return []int{0, 23}
 	case 3:
-		return []int{1, 12}
+		return []int{1, 31}
 	case 4:
-		return []int{0, 7}
+		return []int{1, 12}
 	case 5:
+		return []int{0, 7}
+	case 6:
 		return []int{1, 9999}
 	}
 
