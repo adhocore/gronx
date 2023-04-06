@@ -80,7 +80,11 @@ func TestIsValid(t *testing.T) {
 		if gron.IsValid("* 24-28/2 * * *") {
 			t.Errorf("expected false, got true")
 		}
+		if gron.IsValid("* * * *") {
+			t.Errorf("expected false, got true")
+		}
 	})
+
 }
 
 func TestIsDue(t *testing.T) {
@@ -197,6 +201,8 @@ func testcases() []Case {
 		{"0 12 ? * *", "2020-08-20 00:00:00", false, "2020-08-20 12:00"},
 		{"* ? * ? * *", "2020-08-20 00:00:00", true, "2020-08-20 00:01"},
 		{"* * ? * * * */2", "2021-08-20 00:00:00", false, "2022-08-20 00:00"},
+		{"* * * * * * *", "2021-08-20 00:00:00", true, "2021-08-20 00:01"},
+		{"* * * * * * 2023-2099", "2021-08-20 00:00:00", false, "2023-08-20 00:00"},
 	}
 }
 
