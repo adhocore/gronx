@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// Expr represents an item in array for batch check
 type Expr struct {
 	Expr string
 	Due  bool
