@@ -103,5 +103,5 @@ func parseLine(line string) (match []string) {
 }
 
 func isCronPart(seg string) bool {
-	return seg != "" && seg[0] == '/' && (seg[0] == '*' || seg[0] == '?' || segRe.MatchString(seg))
+	return seg != "" && seg[0] != '/' && (seg[0] == '*' || seg[0] == '?' || segRe.MatchString(seg))
 }
