@@ -81,7 +81,7 @@ func parseLine(line string) (match []string) {
 			for i < llen && !strings.ContainsAny(line[i:i+1], "\t ") {
 				i, seg = i+1, seg+line[i:i+1]
 			}
-			if isCronPart(seg, nseg) {
+			if isCronPart(seg) {
 				expr, nseg = expr+ws+seg, nseg+1
 			} else if seg != "" {
 				cmd += seg
@@ -102,9 +102,6 @@ func parseLine(line string) (match []string) {
 	return
 }
 
-func isCronPart(seg string, nseg int) bool {
-	if seg == "" || seg[0] == '/' {
-		return false
-	}
-	return seg[0] == '*' || seg[0] == '?' || segRe.MatchString(seg)
+func isCronPart(seg string) bool {
+	return seg != "" && seg[0] == '/' && (seg[0] == '*' || seg[0] == '?' || segRe.MatchString(seg))
 }
