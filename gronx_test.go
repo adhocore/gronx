@@ -90,6 +90,20 @@ func TestIsValid(t *testing.T) {
 func TestIsDue(t *testing.T) {
 	gron := New()
 
+	t.Run("seconds precision", func(t *testing.T) {
+		expr := "*/2 * * * * *"
+		ref, _ := time.Parse(FullDateFormat, "2020-02-02 02:02:04")
+		due, _ := gron.IsDue(expr, ref)
+		if !due {
+			t.Errorf("%s should be due on %s", expr, ref)
+		}
+
+		due, _ = gron.IsDue(expr, ref.Add(time.Second))
+		if due {
+			t.Errorf("%s should be due on %s", expr, ref)
+		}
+	})
+
 	for i, test := range testcases() {
 		t.Run(fmt.Sprintf("is due #%d=%s", i, test.Expr), func(t *testing.T) {
 			actual, _ := test.run(gron)
