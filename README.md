@@ -243,7 +243,7 @@ Following modifiers supported
 - *Day of Month / 3rd of 5 segments / 4th of 6+ segments:*
     - `L` stands for last day of month (eg: `L` could mean 29th for February in leap year)
     - `W` stands for closest week day (eg: `10W` is closest week days (MON-FRI) to 10th date)
-- *Day of Week / 5th of segment / 6th of 6+ segments:*
+- *Day of Week / 5th of 5 segments / 6th of 6+ segments:*
     - `L` stands for last weekday of month (eg: `2L` is last monday)
     - `#` stands for nth day of week in the month (eg: `1#2` is second sunday)
 
