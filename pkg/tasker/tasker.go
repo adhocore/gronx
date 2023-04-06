@@ -260,6 +260,13 @@ func (t *Tasker) doSetup() {
 		t.Log.Printf("[tasker] final tick on or before %s", t.until.Format(dateFormat))
 	}
 
+	// If we have seconds precision tickSec should be 1
+	for expr := range t.exprs {
+		if tickSec == 60 && expr[0:2] != "0 " {
+			tickSec = 1
+			break
+		}
+	}
 	if t.ctx != nil {
 		go t.ctxDone()
 	}

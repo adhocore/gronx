@@ -34,9 +34,10 @@ func (c *SegmentChecker) SetRef(ref time.Time) {
 func (c *SegmentChecker) CheckDue(segment string, pos int) (due bool, err error) {
 	ref, last := c.GetRef(), -1
 	val, loc := valueByPos(ref, pos), ref.Location()
+	isMonth, isWeekDay := pos == 3, pos == 5
 
 	for _, offset := range strings.Split(segment, ",") {
-		mod := (pos == 2 || pos == 4) && strings.ContainsAny(offset, "LW#")
+		mod := (isMonth || isWeekDay) && strings.ContainsAny(offset, "LW#")
 		if due, err = c.isOffsetDue(offset, val, pos); due || (!mod && err != nil) {
 			return
 		}
@@ -46,9 +47,9 @@ func (c *SegmentChecker) CheckDue(segment string, pos int) (due bool, err error)
 		if last == -1 {
 			last = time.Date(ref.Year(), ref.Month(), 1, 0, 0, 0, 0, loc).AddDate(0, 1, 0).Add(-time.Nanosecond).Day()
 		}
-		if pos == 2 {
+		if isMonth {
 			due, err = isValidMonthDay(offset, last, ref)
-		} else if pos == 4 {
+		} else if isWeekDay {
 			due, err = isValidWeekDay(offset, last, ref)
 		}
 		if due || err != nil {
@@ -64,18 +65,18 @@ func (c *SegmentChecker) isOffsetDue(offset string, val, pos int) (bool, error) 
 		return true, nil
 	}
 
-	bounds := boundsByPos(pos)
+	bounds, isWeekDay := boundsByPos(pos), pos == 5
 	if strings.Contains(offset, "/") {
 		return inStep(val, offset, bounds)
 	}
 	if strings.Contains(offset, "-") {
-		if pos == 4 {
+		if isWeekDay {
 			offset = strings.Replace(offset, "7-", "0-", 1)
 		}
 		return inRange(val, offset, bounds)
 	}
 
-	if pos != 4 && (val == 0 || offset == "0") {
+	if !isWeekDay && (val == 0 || offset == "0") {
 		return offset == "0" && val == 0, nil
 	}
 
@@ -87,43 +88,44 @@ func (c *SegmentChecker) isOffsetDue(offset string, val, pos int) (bool, error) 
 		return false, fmt.Errorf("segment#%d: '%s' out of bounds(%d, %d)", pos, offset, bounds[0], bounds[1])
 	}
 
-	return nval == val || (pos == 4 && nval == 7 && val == 0), nil
+	return nval == val || (isWeekDay && nval == 7 && val == 0), nil
 }
 
-func valueByPos(ref time.Time, pos int) int {
+func valueByPos(ref time.Time, pos int) (val int) {
 	switch pos {
 	case 0:
-		return ref.Minute()
+		val = ref.Second()
 	case 1:
-		return ref.Hour()
+		val = ref.Minute()
 	case 2:
-		return ref.Day()
+		val = ref.Hour()
 	case 3:
-		return int(ref.Month())
+		val = ref.Day()
 	case 4:
-		return int(ref.Weekday())
+		val = int(ref.Month())
 	case 5:
-		return ref.Year()
+		val = int(ref.Weekday())
+	case 6:
+		val = ref.Year()
 	}
-
-	return 0
+	return
 }
 
-func boundsByPos(pos int) []int {
+func boundsByPos(pos int) (bounds []int) {
+	bounds = []int{0, 0}
 	switch pos {
-	case 0:
-		return []int{0, 59}
-	case 1:
-		return []int{0, 23}
+	case 0, 1:
+		bounds = []int{0, 59}
 	case 2:
-		return []int{1, 31}
+		bounds = []int{0, 23}
 	case 3:
-		return []int{1, 12}
+		bounds = []int{1, 31}
 	case 4:
-		return []int{0, 7}
+		bounds = []int{1, 12}
 	case 5:
-		return []int{1, 9999}
+		bounds = []int{0, 7}
+	case 6:
+		bounds = []int{1, 9999}
 	}
-
-	return []int{0, 0}
+	return
 }

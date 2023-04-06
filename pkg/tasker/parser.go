@@ -24,6 +24,7 @@ func MustParseTaskfile(opts Option) []Task {
 	scan := bufio.NewScanner(file)
 	for scan.Scan() {
 		ln := strings.TrimLeft(scan.Text(), " \t")
+		// Skip empty or comment
 		if ln != "" && ln[0] != '#' {
 			lines = append(lines, ln)
 		}
@@ -41,8 +42,9 @@ func MustParseTaskfile(opts Option) []Task {
 	return linesToTasks(lines)
 }
 
-var cronRe = regexp.MustCompile(`^((?:[^\s]+\s+){5}(?:\d{4})?)(?:\s+)?(.*)`)
+// var cronRe = regexp.MustCompile(`^((?:[^\s]+\s+){5,6}(?:\d{4})?)(?:\s+)?(.*)`)
 var aliasRe = regexp.MustCompile(`^(@(?:annually|yearly|monthly|weekly|daily|hourly|5minutes|10minutes|15minutes|30minutes|always))(?:\s+)?(.*)`)
+var segRe = regexp.MustCompile(`(?i),|/\d+$|^\d+-\d+$|^([0-7]|sun|mon|tue|wed|thu|fri|sat)(L|W|#\d)?$|-([0-7]|sun|mon|tue|wed|thu|fri|sat)$|\d{4}`)
 
 func linesToTasks(lines []string) []Task {
 	var tasks []Task
@@ -53,8 +55,9 @@ func linesToTasks(lines []string) []Task {
 		if line[0] == '@' {
 			match = aliasRe.FindStringSubmatch(line)
 		} else {
-			match = cronRe.FindStringSubmatch(line)
+			match = parseLine(line)
 		}
+
 		if len(match) > 2 && gron.IsValid(match[1]) {
 			tasks = append(tasks, Task{strings.Trim(match[1], " \t"), match[2]})
 			continue
@@ -64,4 +67,41 @@ func linesToTasks(lines []string) []Task {
 	}
 
 	return tasks
+}
+
+func parseLine(line string) (match []string) {
+	wasWs, expr, cmd := false, "", ""
+	i, nseg, llen := 0, 0, len(line)-1
+	match = append(match, line)
+
+	for ; i < llen && nseg <= 7; i++ {
+		isWs := strings.ContainsAny(line[i:i+1], "\t ")
+		if nseg >= 5 {
+			seg, ws := "", line[i-1:i]
+			for i < llen && !strings.ContainsAny(line[i:i+1], "\t ") {
+				i, seg = i+1, seg+line[i:i+1]
+			}
+			if isCronPart(seg) {
+				expr, nseg = expr+ws+seg, nseg+1
+			} else if seg != "" {
+				cmd += seg
+				break
+			}
+		} else {
+			expr += line[i : i+1]
+		}
+		if isWs && !wasWs {
+			nseg++
+		}
+		wasWs = isWs
+	}
+	cmd += line[i:]
+	if nseg >= 5 && strings.TrimSpace(cmd) != "" {
+		match = append(match, expr, cmd)
+	}
+	return
+}
+
+func isCronPart(seg string) bool {
+	return seg != "" && seg[0] != '/' && (seg[0] == '*' || seg[0] == '?' || segRe.MatchString(seg))
 }
