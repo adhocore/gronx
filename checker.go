@@ -91,42 +91,41 @@ func (c *SegmentChecker) isOffsetDue(offset string, val, pos int) (bool, error) 
 	return nval == val || (isWeekDay && nval == 7 && val == 0), nil
 }
 
-func valueByPos(ref time.Time, pos int) int {
+func valueByPos(ref time.Time, pos int) (val int) {
 	switch pos {
 	case 0:
-		return ref.Second()
+		val = ref.Second()
 	case 1:
-		return ref.Minute()
+		val = ref.Minute()
 	case 2:
-		return ref.Hour()
+		val = ref.Hour()
 	case 3:
-		return ref.Day()
+		val = ref.Day()
 	case 4:
-		return int(ref.Month())
+		val = int(ref.Month())
 	case 5:
-		return int(ref.Weekday())
+		val = int(ref.Weekday())
 	case 6:
-		return ref.Year()
+		val = ref.Year()
 	}
-
-	return 0
+	return
 }
 
-func boundsByPos(pos int) []int {
+func boundsByPos(pos int) (bounds []int) {
+	bounds = []int{0, 0}
 	switch pos {
 	case 0, 1:
-		return []int{0, 59}
+		bounds = []int{0, 59}
 	case 2:
-		return []int{0, 23}
+		bounds = []int{0, 23}
 	case 3:
-		return []int{1, 31}
+		bounds = []int{1, 31}
 	case 4:
-		return []int{1, 12}
+		bounds = []int{1, 12}
 	case 5:
-		return []int{0, 7}
+		bounds = []int{0, 7}
 	case 6:
-		return []int{1, 9999}
+		bounds = []int{1, 9999}
 	}
-
-	return []int{0, 0}
+	return
 }
