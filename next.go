@@ -56,7 +56,7 @@ func loop(gron Gronx, segments []string, start time.Time, incl bool) (next time.
 			}
 		}
 		if !incl && next.Format(FullDateFormat) == start.Format(FullDateFormat) {
-			next, _, err = bumpUntilDue(gron.C, segments[0], 0, next.Add(time.Minute))
+			next, _, err = bumpUntilDue(gron.C, segments[0], 0, next.Add(time.Second))
 			continue
 		}
 		return next, err
