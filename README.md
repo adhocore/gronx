@@ -45,6 +45,29 @@ gron.IsDue(expr) // true|false, nil
 gron.IsDue(expr, time.Date(2021, time.April, 1, 1, 1, 0, 0, time.UTC)) // true|false, nil
 ```
 
+### Batch Due Check
+
+If you have multiple cron expressions to check due on same reference time use `BatchDue()`:
+```go
+gron := gronx.New()
+exprs := []string{"* * * * *", "0 */5 * * * *"}
+
+// gives []gronx.Expr{} array, each item has Due flag and Err enountered.
+dues := gron.BatchDue(exprs)
+
+for _, expr := range dues {
+    if expr.Err != nil {
+        // Handle err
+    } else if expr.Due {
+        // Handle due
+    }
+}
+
+// Or with given time
+ref := time.Now()
+gron.BatchDue(exprs, ref)
+```
+
 ### Next Tick
 
 To find out when is the cron due next (onwards):
