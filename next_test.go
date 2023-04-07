@@ -9,17 +9,17 @@ import (
 func TestNextTick(t *testing.T) {
 	exp := "* * * * * *"
 	t.Run("next tick incl "+exp, func(t *testing.T) {
-		now := time.Now().Format(CronDateFormat)
+		now := time.Now().Format(FullDateFormat)
 		next, _ := NextTick(exp, true)
-		tick := next.Format(CronDateFormat)
+		tick := next.Format(FullDateFormat)
 		if now != tick {
 			t.Errorf("expected %v, got %v", now, tick)
 		}
 	})
 	t.Run("next tick excl "+exp, func(t *testing.T) {
-		expect := time.Now().Add(time.Minute).Format(CronDateFormat)
+		expect := time.Now().Add(time.Second).Format(FullDateFormat)
 		next, _ := NextTick(exp, false)
-		tick := next.Format(CronDateFormat)
+		tick := next.Format(FullDateFormat)
 		if expect != tick {
 			t.Errorf("expected %v, got %v", expect, tick)
 		}
@@ -58,9 +58,9 @@ func TestNextTickAfter(t *testing.T) {
 					if expect == "" {
 						expect = test.Ref
 					}
-					actual := next.Format(CronDateFormat)
+					actual := next.Format(FullDateFormat)
 					if due, _ := gron.IsDue(test.Expr, next); !due {
-						t.Errorf("[%s][%s] should be due on %v", test.Expr, test.Ref, next.Format(CronDateFormat))
+						t.Errorf("[%s][%s] should be due on %v", test.Expr, test.Ref, next.Format(FullDateFormat))
 					}
 					if expect != actual {
 						t.Errorf("[%s][%s] expected %v, got %v", test.Expr, test.Ref, expect, actual)
