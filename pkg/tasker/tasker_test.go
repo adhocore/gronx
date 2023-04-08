@@ -46,6 +46,11 @@ func TestRun(t *testing.T) {
 			return 0, nil
 		})
 
+		// dummy task that will never execute
+		taskr.Task("* * * * * 2022", func(_ context.Context) (int, error) {
+			return 0, nil
+		})
+
 		time.Sleep(time.Second - time.Duration(time.Now().Nanosecond()))
 
 		dur := 2500 * time.Millisecond
