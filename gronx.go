@@ -69,6 +69,11 @@ func (g *Gronx) IsDue(expr string, ref ...time.Time) (bool, error) {
 	return g.SegmentsDue(segs)
 }
 
+func (g *Gronx) isDue(expr string, ref time.Time) bool {
+	due, err := g.IsDue(expr, ref)
+	return err == nil && due
+}
+
 // Segments splits expr into array array of cron parts.
 // If expression contains 5 parts or 6th part is year like, it prepends a second.
 // It returns array or error.
