@@ -15,11 +15,8 @@ type Expr struct {
 // BatchDue checks if multiple expressions are due for given time (or now).
 // It returns []Expr with filled in Due and Err values.
 func (g *Gronx) BatchDue(exprs []string, ref ...time.Time) []Expr {
-	if len(ref) > 0 {
-		g.C.SetRef(ref[0])
-	} else {
-		g.C.SetRef(time.Now())
-	}
+	ref = append(ref, time.Now())
+	g.C.SetRef(ref[0])
 
 	batch := make([]Expr, len(exprs))
 	for i := range exprs {
