@@ -262,7 +262,7 @@ func (t *Tasker) doSetup() {
 
 	// If we have seconds precision tickSec should be 1
 	for expr := range t.exprs {
-		if tickSec == 60 && expr[0:2] != "0 " {
+		if expr[0:2] != "0 " {
 			tickSec = 1
 			break
 		}

@@ -14,6 +14,8 @@ and daemon that supports crontab like task list file. Use it programatically in 
 
 - Zero dependency.
 - Very **fast** because it bails early in case a segment doesn't match.
+- Built in crontab like daemon.
+- Supports time granularity of Seconds.
 
 Find gronx in [pkg.go.dev](https://pkg.go.dev/github.com/adhocore/gronx).
 
@@ -70,7 +72,7 @@ gron.BatchDue(exprs, ref)
 
 ### Next Tick
 
-To find out when is the cron due next (onwards):
+To find out when is the cron due next (in near future):
 ```go
 allowCurrent = true // includes current time as well
 nextTime, err := gron.NextTick(expr, allowCurrent) // gives time.Time, error
@@ -81,11 +83,26 @@ allowCurrent = false // excludes the ref time
 nextTime, err := gron.NextTickAfter(expr, refTime, allowCurrent) // gives time.Time, error
 ```
 
+### Prev Tick
+
+To find out when was the cron due previously (in near past):
+```go
+allowCurrent = true // includes current time as well
+prevTime, err := gron.PrevTick(expr, allowCurrent) // gives time.Time, error
+
+// OR, prev tick before certain reference time
+refTime = time.Date(2022, time.November, 1, 1, 1, 0, 0, time.UTC)
+allowCurrent = false // excludes the ref time
+nextTime, err := gron.PrevTickBefore(expr, refTime, allowCurrent) // gives time.Time, error
+```
+
+> The working of `PrevTick*()` and `NextTick*()` are mostly the same except the direction.
+> They differ in lookback or lookahead.
+
 ### Standalone Daemon
 
 In a more practical level, you would use this tool to manage and invoke jobs in app itself and not
-mess around with `crontab` for each and every new tasks/jobs. ~~It doesn't yet replace that but rather supplements it.
-There is a plan though [#1](https://github.com/adhocore/gronx/issues/1)~~.
+mess around with `crontab` for each and every new tasks/jobs.
 
 In crontab just put one entry with `* * * * *` which points to your Go entry point that uses this tool.
 Then in that entry point you would invoke different tasks if the corresponding Cron expr is due.

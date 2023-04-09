@@ -29,21 +29,20 @@ func NextTickAfter(expr string, start time.Time, inclRefTime bool) (time.Time, e
 	}
 
 	segments, _ := Segments(expr)
-	if len(segments) > 6 && isPastYear(segments[6], next, inclRefTime) {
+	if len(segments) > 6 && isUnreachableYear(segments[6], next, inclRefTime, false) {
 		return next, fmt.Errorf("unreachable year segment: %s", segments[6])
 	}
 
-	if next, err = loop(gron, segments, next, inclRefTime); err != nil {
-		// Ignore superfluous err
-		if due, _ = gron.IsDue(expr, next); due {
-			err = nil
-		}
+	next, err = loop(gron, segments, next, inclRefTime, false)
+	// Ignore superfluous err
+	if err != nil && gron.isDue(expr, next) {
+		err = nil
 	}
 	return next, err
 }
 
-func loop(gron Gronx, segments []string, start time.Time, incl bool) (next time.Time, err error) {
-	iter, next, bumped := 1000, start, false
+func loop(gron Gronx, segments []string, start time.Time, incl bool, reverse bool) (next time.Time, err error) {
+	iter, next, bumped := 500, start, false
 	for iter > 0 {
 	over:
 		iter--
@@ -51,29 +50,36 @@ func loop(gron Gronx, segments []string, start time.Time, incl bool) (next time.
 			if seg == "*" || seg == "?" {
 				continue
 			}
-			if next, bumped, err = bumpUntilDue(gron.C, seg, pos, next); bumped {
+			if next, bumped, err = bumpUntilDue(gron.C, seg, pos, next, reverse); bumped {
 				goto over
 			}
 		}
 		if !incl && next.Format(FullDateFormat) == start.Format(FullDateFormat) {
-			next, _, err = bumpUntilDue(gron.C, segments[0], 0, next.Add(time.Second))
+			delta := time.Second
+			if reverse {
+				delta = -time.Second
+			}
+			next, _, err = bumpUntilDue(gron.C, segments[0], 0, next.Add(delta), reverse)
 			continue
 		}
-		return next, err
+		return
 	}
 	return start, errors.New("tried so hard")
 }
 
 var dashRe = regexp.MustCompile(`/.*$`)
 
-func isPastYear(year string, ref time.Time, incl bool) bool {
+func isUnreachableYear(year string, ref time.Time, incl bool, reverse bool) bool {
 	if year == "*" || year == "?" {
 		return false
 	}
 
-	min := ref.Year()
+	edge, inc := ref.Year(), 1
 	if !incl {
-		min++
+		if reverse {
+			inc = -1
+		}
+		edge += inc
 	}
 	for _, offset := range strings.Split(year, ",") {
 		if strings.Index(offset, "*/") == 0 || strings.Index(offset, "0/") == 0 {
@@ -81,7 +87,7 @@ func isPastYear(year string, ref time.Time, incl bool) bool {
 		}
 		for _, part := range strings.Split(dashRe.ReplaceAllString(offset, ""), "-") {
 			val, err := strconv.Atoi(part)
-			if err != nil || val >= min {
+			if err != nil || (!reverse && val >= edge) || (reverse && val < edge) {
 				return false
 			}
 		}
@@ -91,7 +97,7 @@ func isPastYear(year string, ref time.Time, incl bool) bool {
 
 var limit = map[int]int{0: 60, 1: 60, 2: 24, 3: 31, 4: 12, 5: 366, 6: 100}
 
-func bumpUntilDue(c Checker, segment string, pos int, ref time.Time) (time.Time, bool, error) {
+func bumpUntilDue(c Checker, segment string, pos int, ref time.Time, reverse bool) (time.Time, bool, error) {
 	// <second> <minute> <hour> <day> <month> <weekday> <year>
 	iter := limit[pos]
 	for iter > 0 {
@@ -99,26 +105,31 @@ func bumpUntilDue(c Checker, segment string, pos int, ref time.Time) (time.Time,
 		if ok, _ := c.CheckDue(segment, pos); ok {
 			return ref, iter != limit[pos], nil
 		}
-		ref = bump(ref, pos)
+		ref = bump(ref, pos, reverse)
 		iter--
 	}
 	return ref, false, errors.New("tried so hard")
 }
 
-func bump(ref time.Time, pos int) time.Time {
+func bump(ref time.Time, pos int, reverse bool) time.Time {
+	factor := 1
+	if reverse {
+		factor = -1
+	}
+
 	switch pos {
 	case 0:
-		ref = ref.Add(time.Second)
+		ref = ref.Add(time.Duration(factor) * time.Second)
 	case 1:
-		ref = ref.Add(time.Minute)
+		ref = ref.Add(time.Duration(factor) * time.Minute)
 	case 2:
-		ref = ref.Add(time.Hour)
+		ref = ref.Add(time.Duration(factor) * time.Hour)
 	case 3, 5:
-		ref = ref.AddDate(0, 0, 1)
+		ref = ref.AddDate(0, 0, factor)
 	case 4:
-		ref = ref.AddDate(0, 1, 0)
+		ref = ref.AddDate(0, factor, 0)
 	case 6:
-		ref = ref.AddDate(1, 0, 0)
+		ref = ref.AddDate(factor, 0, 0)
 	}
 	return ref
 }
