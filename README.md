@@ -146,8 +146,12 @@ func main() {
 		return 0, nil
 	})
 
+	// run task without overlap, set concurrent flag to false:
+    concurrent := false
+    taskr.Task("* * * * * *", , tasker.Taskify("sleep 2", tasker.Option{}), concurrent)
+
 	// every 10 minute with arbitrary command
-	taskr.Task("@10minutes", taskr.Taskify("command --option val -- args"))
+	taskr.Task("@10minutes", taskr.Taskify("command --option val -- args", tasker.Option{Shell: "/bin/sh -c"}))
 
 	// ... add more tasks
 
@@ -158,6 +162,20 @@ func main() {
 	// it exits gracefully when ctrl+c is received making sure pending tasks are completed.
 	taskr.Run()
 }
+```
+
+#### Concurrency
+
+By default the tasks can run concurrently i.e if previous run is still not finished
+but it is now due again, it will run again.
+If you want to run only one instance of a task at a time, set concurrent flag to false:
+
+```go
+taskr := tasker.New(tasker.Option{})
+
+concurrent := false
+expr, task := "* * * * * *", tasker.Taskify("php -r 'sleep(2);'")
+taskr.Task(expr, task, false)
 ```
 
 ### Task Daemon

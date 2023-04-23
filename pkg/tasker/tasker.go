@@ -11,6 +11,7 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -45,6 +46,7 @@ type Tasker struct {
 	until     time.Time
 	exprs     map[string][]string
 	tasks     map[string]TaskFunc
+	mutex     map[string]uint32
 	abort     bool
 	timeout   bool
 	verbose   bool
@@ -169,16 +171,16 @@ const taskIDFormat = "[%s][#%d]"
 
 // Task appends new task handler for given cron expr.
 // It returns Tasker (itself) for fluency and bails if expr is invalid.
-func (t *Tasker) Task(expr string, task TaskFunc) *Tasker {
+func (t *Tasker) Task(expr string, task TaskFunc, concurrent ...bool) *Tasker {
 	segs, err := gronx.Segments(expr)
 	if err != nil {
 		log.Fatalf("invalid cron expr: %+v", err)
 	}
 
+	concurrent = append(concurrent, true)
 	old, expr := gronx.SpaceRe.ReplaceAllString(expr, " "), strings.Join(segs, " ")
 	if _, ok := t.exprs[expr]; !ok {
-		// Validate expr.
-		if _, err := t.gron.SegmentsDue(segs); err != nil {
+		if !t.gron.IsValid(expr) {
 			log.Fatalf("invalid cron expr: %+v", err)
 		}
 
@@ -189,6 +191,13 @@ func (t *Tasker) Task(expr string, task TaskFunc) *Tasker {
 
 	t.exprs[expr] = append(t.exprs[expr], ref)
 	t.tasks[ref] = task
+
+	if !concurrent[0] {
+		if len(t.mutex) == 0 {
+			t.mutex = map[string]uint32{}
+		}
+		t.mutex[ref] = 0
+	}
 
 	return t
 }
@@ -330,12 +339,28 @@ func (t *Tasker) runTasks(tasks map[string]TaskFunc) {
 	}
 
 	for ref, task := range tasks {
+		if !t.canRun(ref) {
+			continue
+		}
+
 		t.wg.Add(1)
 		rc := make(chan result)
 
 		go t.doRun(ctx, ref, task, rc)
 		go t.doOut(rc)
 	}
+}
+
+func (t *Tasker) canRun(ref string) bool {
+	lock, ok := t.mutex[ref]
+	if !ok {
+		return true
+	}
+	if atomic.CompareAndSwapUint32(&lock, 0, 1) {
+		t.mutex[ref] = 1
+		return true
+	}
+	return false
 }
 
 func (t *Tasker) doRun(ctx context.Context, ref string, task TaskFunc, rc chan result) {
@@ -347,7 +372,12 @@ func (t *Tasker) doRun(ctx context.Context, ref string, task TaskFunc, rc chan r
 	if t.verbose {
 		t.Log.Printf("[tasker] task %s running\n", ref)
 	}
+
 	code, err := task(ctx)
+	if lock, ok := t.mutex[ref]; ok {
+		atomic.StoreUint32(&lock, 0)
+		t.mutex[ref] = 0
+	}
 
 	rc <- result{ref, code, err}
 }
