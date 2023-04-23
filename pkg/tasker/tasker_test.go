@@ -171,3 +171,32 @@ func TestWithContext(t *testing.T) {
 		fmt.Println(string(buf))
 	})
 }
+
+func TestConcurrency(t *testing.T) {
+	t.Run("Run", func(t *testing.T) {
+		taskr := New(Option{Verbose: true, Out: "../../test/tasker.out"})
+
+		single := 0
+		taskr.Task("* * * * * *", func(ctx context.Context) (int, error) {
+			time.Sleep(2500 * time.Millisecond)
+			single++
+			return 0, nil
+		}, false)
+
+		concurrent := 0
+		taskr.Task("* * * * * *", func(ctx context.Context) (int, error) {
+			time.Sleep(1 * time.Second)
+			concurrent++
+			return 0, nil
+		}, true)
+
+		taskr.Until(3 * time.Second).Run()
+
+		if single != 1 {
+			t.Errorf("single task should run 1x, not %dx", single)
+		}
+		if concurrent != 2 {
+			t.Errorf("concurrent task should run 2x, not %dx", concurrent)
+		}
+	})
+}
