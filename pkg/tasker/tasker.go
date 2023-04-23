@@ -45,6 +45,7 @@ type Tasker struct {
 	until     time.Time
 	exprs     map[string][]string
 	tasks     map[string]TaskFunc
+	mutex     map[string]*sync.Mutex
 	abort     bool
 	timeout   bool
 	verbose   bool
@@ -169,16 +170,16 @@ const taskIDFormat = "[%s][#%d]"
 
 // Task appends new task handler for given cron expr.
 // It returns Tasker (itself) for fluency and bails if expr is invalid.
-func (t *Tasker) Task(expr string, task TaskFunc) *Tasker {
+func (t *Tasker) Task(expr string, task TaskFunc, concurrent ...bool) *Tasker {
 	segs, err := gronx.Segments(expr)
 	if err != nil {
 		log.Fatalf("invalid cron expr: %+v", err)
 	}
 
+	concurrent = append(concurrent, true)
 	old, expr := gronx.SpaceRe.ReplaceAllString(expr, " "), strings.Join(segs, " ")
 	if _, ok := t.exprs[expr]; !ok {
-		// Validate expr.
-		if _, err := t.gron.SegmentsDue(segs); err != nil {
+		if !t.gron.IsValid(expr) {
 			log.Fatalf("invalid cron expr: %+v", err)
 		}
 
@@ -189,6 +190,13 @@ func (t *Tasker) Task(expr string, task TaskFunc) *Tasker {
 
 	t.exprs[expr] = append(t.exprs[expr], ref)
 	t.tasks[ref] = task
+
+	if !concurrent[0] {
+		if len(t.mutex) == 0 {
+			t.mutex = map[string]*sync.Mutex{}
+		}
+		t.mutex[ref] = &sync.Mutex{}
+	}
 
 	return t
 }
@@ -330,12 +338,20 @@ func (t *Tasker) runTasks(tasks map[string]TaskFunc) {
 	}
 
 	for ref, task := range tasks {
+		if !t.canRun(ref) {
+			continue
+		}
+
 		t.wg.Add(1)
 		rc := make(chan result)
 
 		go t.doRun(ctx, ref, task, rc)
 		go t.doOut(rc)
 	}
+}
+
+func (t *Tasker) canRun(ref string) bool {
+	return t.mutex[ref] == nil || t.mutex[ref].TryLock()
 }
 
 func (t *Tasker) doRun(ctx context.Context, ref string, task TaskFunc, rc chan result) {
@@ -347,7 +363,11 @@ func (t *Tasker) doRun(ctx context.Context, ref string, task TaskFunc, rc chan r
 	if t.verbose {
 		t.Log.Printf("[tasker] task %s running\n", ref)
 	}
+
 	code, err := task(ctx)
+	if t.mutex[ref] != nil {
+		t.mutex[ref].Unlock()
+	}
 
 	rc <- result{ref, code, err}
 }
