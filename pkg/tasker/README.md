@@ -83,7 +83,7 @@ taskr := tasker.New(tasker.Option{})
 
 concurrent := false
 expr, task := "* * * * * *", tasker.Taskify("php -r 'sleep(2);'")
-taskr.Task(expr, task, false)
+taskr.Task(expr, task, concurrent)
 ```
 
 ### Task Daemon

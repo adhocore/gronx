@@ -113,7 +113,7 @@ Check the section below for more sophisticated way of managing tasks automatical
 ---
 ### Go Tasker
 
-Tasker is a task manager that can be programatically used in Golang applications. It runs as a daemon and and invokes tasks scheduled with cron expression:
+Tasker is a task manager that can be programatically used in Golang applications. It runs as a daemon and invokes tasks scheduled with cron expression:
 ```go
 package main
 
@@ -175,7 +175,7 @@ taskr := tasker.New(tasker.Option{})
 
 concurrent := false
 expr, task := "* * * * * *", tasker.Taskify("php -r 'sleep(2);'")
-taskr.Task(expr, task, false)
+taskr.Task(expr, task, concurrent)
 ```
 
 ### Task Daemon
