@@ -11,6 +11,7 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -45,7 +46,7 @@ type Tasker struct {
 	until     time.Time
 	exprs     map[string][]string
 	tasks     map[string]TaskFunc
-	mutex     map[string]*sync.Mutex
+	mutex     map[string]uint32
 	abort     bool
 	timeout   bool
 	verbose   bool
@@ -193,9 +194,9 @@ func (t *Tasker) Task(expr string, task TaskFunc, concurrent ...bool) *Tasker {
 
 	if !concurrent[0] {
 		if len(t.mutex) == 0 {
-			t.mutex = map[string]*sync.Mutex{}
+			t.mutex = map[string]uint32{}
 		}
-		t.mutex[ref] = &sync.Mutex{}
+		t.mutex[ref] = 0
 	}
 
 	return t
@@ -351,7 +352,15 @@ func (t *Tasker) runTasks(tasks map[string]TaskFunc) {
 }
 
 func (t *Tasker) canRun(ref string) bool {
-	return t.mutex[ref] == nil || t.mutex[ref].TryLock()
+	lock, ok := t.mutex[ref]
+	if !ok {
+		return true
+	}
+	if atomic.CompareAndSwapUint32(&lock, 0, 1) {
+		t.mutex[ref] = 1
+		return true
+	}
+	return false
 }
 
 func (t *Tasker) doRun(ctx context.Context, ref string, task TaskFunc, rc chan result) {
@@ -365,8 +374,9 @@ func (t *Tasker) doRun(ctx context.Context, ref string, task TaskFunc, rc chan r
 	}
 
 	code, err := task(ctx)
-	if t.mutex[ref] != nil {
-		t.mutex[ref].Unlock()
+	if lock, ok := t.mutex[ref]; ok {
+		atomic.StoreUint32(&lock, 0)
+		t.mutex[ref] = 0
 	}
 
 	rc <- result{ref, code, err}
