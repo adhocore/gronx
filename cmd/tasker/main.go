@@ -14,8 +14,9 @@ var exit = os.Exit
 var tick = time.Minute
 
 var opt tasker.Option
-
 var v bool
+
+// Version of tasker, injected in build
 var Version = "n/a"
 
 func init() {
