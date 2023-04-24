@@ -91,7 +91,7 @@ It can also be used as standalone task daemon instead of programmatic usage for 
 
 First, just install tasker command:
 ```sh
-go get -u github.com/adhocore/gronx/cmd/tasker
+go install github.com/adhocore/gronx/cmd/tasker@latest
 ```
 
 Then prepare a taskfile ([example](https://github.com/adhocore/gronx/blob/main/test/taskfile.txt)) in crontab format
