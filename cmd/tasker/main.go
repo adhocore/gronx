@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -13,6 +14,10 @@ var exit = os.Exit
 var tick = time.Minute
 
 var opt tasker.Option
+var v bool
+
+// Version of tasker, injected in build
+var Version = "n/a"
 
 func init() {
 	flag.StringVar(&opt.File, "file", "", "The task file in crontab format (without user)")
@@ -21,6 +26,7 @@ func init() {
 	flag.StringVar(&opt.Out, "out", "", "The fullpath to file where output from tasks are sent to")
 	flag.BoolVar(&opt.Verbose, "verbose", false, "The verbose mode outputs as much as possible")
 	flag.Int64Var(&opt.Until, "until", 0, "The timeout for task daemon in minutes")
+	flag.BoolVar(&v, "v", false, "Show version")
 }
 
 func main() {
@@ -41,6 +47,11 @@ func main() {
 func mustParseOption() {
 	opt = tasker.Option{}
 	flag.Parse()
+
+	if v {
+		fmt.Printf("v%s\n", Version)
+		exit(0)
+	}
 
 	if opt.File == "" {
 		flag.Usage()
