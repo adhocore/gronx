@@ -187,6 +187,8 @@ First, just install tasker command:
 go install github.com/adhocore/gronx/cmd/tasker@latest
 ```
 
+Or you can also download latest prebuilt binary from [release](https://github.com/adhocore/gronx/releases/latest) for platform of your choice.
+
 Then prepare a taskfile ([example](./tests/../test/taskfile.txt)) in crontab format
 (or can even point to existing crontab).
 > `user` is not supported: it is just cron expr followed by the command.
