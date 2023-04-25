@@ -1,6 +1,7 @@
 package gronx
 
 import (
+	"strings"
 	"time"
 )
 
@@ -9,7 +10,6 @@ type Expr struct {
 	Expr string
 	Due  bool
 	Err  error
-	segs []string
 }
 
 // BatchDue checks if multiple expressions are due for given time (or now).
@@ -18,13 +18,26 @@ func (g *Gronx) BatchDue(exprs []string, ref ...time.Time) []Expr {
 	ref = append(ref, time.Now())
 	g.C.SetRef(ref[0])
 
-	batch := make([]Expr, len(exprs))
+	var segs []string
+
+	cache, batch := map[string]Expr{}, make([]Expr, len(exprs))
 	for i := range exprs {
-		if batch[i].segs, batch[i].Err = Segments(exprs[i]); batch[i].Err != nil {
+		batch[i].Expr = exprs[i]
+		segs, batch[i].Err = Segments(exprs[i])
+		key := strings.Join(segs, " ")
+		if batch[i].Err != nil {
+			cache[key] = batch[i]
 			continue
 		}
+
+		if c, ok := cache[key]; ok {
+			batch[i] = c
+			batch[i].Expr = exprs[i]
+			continue
+		}
+
 		due := true
-		for pos, seg := range batch[i].segs {
+		for pos, seg := range segs {
 			if seg != "*" && seg != "?" {
 				if due, batch[i].Err = g.C.CheckDue(seg, pos); !due || batch[i].Err != nil {
 					break
@@ -32,6 +45,7 @@ func (g *Gronx) BatchDue(exprs []string, ref ...time.Time) []Expr {
 			}
 		}
 		batch[i].Due = due
+		cache[key] = batch[i]
 	}
 	return batch
 }
