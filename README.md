@@ -325,4 +325,4 @@ My other golang projects you might find interesting and useful:
 - [**urlsh**](https://github.com/adhocore/urlsh) - URL shortener and bookmarker service with UI, API, Cache, Hits Counter and forwarder using postgres and redis in backend, bulma in frontend; has [web](https://urlssh.xyz) and cli client
 - [**fast**](https://github.com/adhocore/fast) - Check your internet speed with ease and comfort right from the terminal
 - [**goic**](https://github.com/adhocore/goic) - Go Open ID Connect, is OpenID connect client library for Golang, supports the Authorization Code Flow of OpenID Connect specification.
-- [**chin**](https://github.com/adhocore/chin) - A GO lang command line tool to show a spinner as user waits for some long running jobs to finish.
+- [**chin**](https://github.com/adhocore/chin) - A Go lang command line tool to show a spinner as user waits for some long running jobs to finish.
