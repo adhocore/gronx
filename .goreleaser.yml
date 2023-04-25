@@ -2,8 +2,8 @@ project_name: tasker
 
 release:
   prerelease: auto
-  name_template: "v{{.Version}}"
-  draft: true
+  name_template: "Version v{{.Version}}"
+  # draft: true
   mode: "keep-existing"
 
 before:

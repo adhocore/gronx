@@ -147,8 +147,8 @@ func main() {
 	})
 
 	// run task without overlap, set concurrent flag to false:
-    concurrent := false
-    taskr.Task("* * * * * *", , tasker.Taskify("sleep 2", tasker.Option{}), concurrent)
+	concurrent := false
+	taskr.Task("* * * * * *", , tasker.Taskify("sleep 2", tasker.Option{}), concurrent)
 
 	// every 10 minute with arbitrary command
 	taskr.Task("@10minutes", taskr.Taskify("command --option val -- args", tasker.Option{Shell: "/bin/sh -c"}))
