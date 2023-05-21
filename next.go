@@ -46,7 +46,8 @@ func loop(gron Gronx, segments []string, start time.Time, incl bool, reverse boo
 	for iter > 0 {
 	over:
 		iter--
-		for pos, seg := range segments {
+		for pos := len(segments) - 1; pos >= 0; pos-- {
+			seg := segments[pos]
 			if seg == "*" || seg == "?" {
 				continue
 			}
