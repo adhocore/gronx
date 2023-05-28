@@ -43,8 +43,8 @@ func NextTickAfter(expr string, start time.Time, inclRefTime bool) (time.Time, e
 
 func loop(gron Gronx, segments []string, start time.Time, incl bool, reverse bool) (next time.Time, err error) {
 	iter, next, bumped := 500, start, false
+over:
 	for iter > 0 {
-	over:
 		iter--
 		for pos, seg := range segments {
 			if seg == "*" || seg == "?" {
