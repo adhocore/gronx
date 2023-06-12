@@ -10,7 +10,7 @@
 [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Lightweight+fast+and+deps+free+cron+expression+parser+for+Golang&url=https://github.com/adhocore/gronx&hashtags=go,golang,parser,cron,cronexpr,cronparser)
 
 `gronx` is Golang [cron expression](#cron-expression) parser ported from [adhocore/cron-expr](https://github.com/adhocore/php-cron-expr) with task runner
-and daemon that supports crontab like task list file. Use it programatically in Golang or as standalone binary instead of crond.
+and daemon that supports crontab like task list file. Use it programatically in Golang or as standalone binary instead of crond. If that's not enough, you can use gronx to find the next (`NextTick()`) or previous (`PrevTick()`) run time of an expression from any arbitrary point of time.
 
 - Zero dependency.
 - Very **fast** because it bails early in case a segment doesn't match.
