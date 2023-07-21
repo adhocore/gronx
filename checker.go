@@ -76,14 +76,15 @@ func (c *SegmentChecker) isOffsetDue(offset string, val, pos int) (bool, error) 
 		return inRange(val, offset, bounds)
 	}
 
-	if !isWeekDay && (val == 0 || offset == "0") {
-		return offset == "0" && val == 0, nil
-	}
-
 	nval, err := strconv.Atoi(offset)
 	if err != nil {
 		return false, err
 	}
+
+	if !isWeekDay && (val == 0 || nval == 0) {
+		return nval == 0 && val == 0, nil
+	}
+
 	if nval < bounds[0] || nval > bounds[1] {
 		return false, fmt.Errorf("segment#%d: '%s' out of bounds(%d, %d)", pos, offset, bounds[0], bounds[1])
 	}
