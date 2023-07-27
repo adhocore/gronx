@@ -142,5 +142,5 @@ func isValidWeekDay(val string, last int, ref time.Time) (bool, error) {
 		return false, nil
 	}
 
-	return ref.Day()/7 == nth-1, nil
+	return (ref.Day()-1)/7 == nth-1, nil
 }
