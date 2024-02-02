@@ -117,9 +117,9 @@ func (g *Gronx) IsValid(expr string) bool {
 		return false
 	}
 
-	g.C.SetRef(time.Now())
+	c := &SegmentChecker{ref: time.Now()}
 	for pos, seg := range segs {
-		if _, err := g.C.CheckDue(seg, pos); err != nil {
+		if _, err := c.CheckDue(seg, pos); err != nil {
 			return false
 		}
 	}
