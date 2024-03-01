@@ -46,7 +46,9 @@ func loop(gron Gronx, segments []string, start time.Time, incl bool, reverse boo
 over:
 	for iter > 0 {
 		iter--
-		for pos, seg := range segments {
+		for i := 0; i < len(segments); i++ {
+			pos := len(segments) - 1 - i
+			seg := segments[len(segments)-1-i]
 			if seg == "*" || seg == "?" {
 				continue
 			}
@@ -121,15 +123,40 @@ func bump(ref time.Time, pos int, reverse bool) time.Time {
 	case 0:
 		ref = ref.Add(time.Duration(factor) * time.Second)
 	case 1:
-		ref = ref.Add(time.Duration(factor) * time.Minute)
+		minTime := ref.Add(time.Duration(factor) * time.Minute)
+		if reverse {
+			ref = time.Date(minTime.Year(), minTime.Month(), minTime.Day(), minTime.Hour(), minTime.Minute(), 59, 0, minTime.Location())
+		} else {
+			ref = time.Date(minTime.Year(), minTime.Month(), minTime.Day(), minTime.Hour(), minTime.Minute(), 0, 0, minTime.Location())
+		}
 	case 2:
-		ref = ref.Add(time.Duration(factor) * time.Hour)
+		hTime := ref.Add(time.Duration(factor) * time.Hour)
+		if reverse {
+			ref = time.Date(hTime.Year(), hTime.Month(), hTime.Day(), hTime.Hour(), 59, 59, 0, hTime.Location())
+		} else {
+			ref = time.Date(hTime.Year(), hTime.Month(), hTime.Day(), hTime.Hour(), 0, 0, 0, hTime.Location())
+		}
 	case 3, 5:
-		ref = ref.AddDate(0, 0, factor)
+		dTime := ref.AddDate(0, 0, factor)
+		if reverse {
+			ref = time.Date(dTime.Year(), dTime.Month(), dTime.Day(), 23, 59, 59, 0, dTime.Location())
+		} else {
+			ref = time.Date(dTime.Year(), dTime.Month(), dTime.Day(), 0, 0, 0, 0, dTime.Location())
+		}
 	case 4:
-		ref = ref.AddDate(0, factor, 0)
+		mTime := ref.AddDate(0, factor, 0)
+		if reverse {
+			ref = time.Date(mTime.Year(), ref.Month(), -1, 23, 59, 59, 0, mTime.Location())
+		} else {
+			ref = time.Date(mTime.Year(), mTime.Month(), 1, 0, 0, 0, 0, mTime.Location())
+		}
 	case 6:
-		ref = ref.AddDate(factor, 0, 0)
+		yTime := ref.AddDate(factor, 0, 0)
+		if reverse {
+			ref = time.Date(yTime.Year(), 12, 31, 23, 59, 59, 0, yTime.Location())
+		} else {
+			ref = time.Date(yTime.Year(), 1, 1, 0, 0, 0, 0, yTime.Location())
+		}
 	}
 	return ref
 }
