@@ -45,7 +45,7 @@ func (c *SegmentChecker) CheckDue(segment string, pos int) (due bool, err error)
 			continue
 		}
 		if last == -1 {
-			last = time.Date(ref.Year(), ref.Month(), 1, 0, 0, 0, 0, loc).AddDate(0, 1, 0).Add(-time.Nanosecond).Day()
+			last = time.Date(ref.Year(), ref.Month(), 1, 0, 0, 0, 0, loc).AddDate(0, 1, 0).Add(-time.Second).Day()
 		}
 		if isMonth {
 			due, err = isValidMonthDay(offset, last, ref)
