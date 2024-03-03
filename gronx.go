@@ -96,9 +96,42 @@ func Segments(expr string) ([]string, error) {
 // SegmentsDue checks if all cron parts are due.
 // It returns bool. You should use IsDue(expr) instead.
 func (g *Gronx) SegmentsDue(segs []string) (bool, error) {
-	for pos, seg := range segs {
+	skipMonthDayCheck := false
+	for i := 0; i < len(segs); i++ {
+		pos := len(segs) - 1 - i
+		seg := segs[pos]
+		isMonthDay, isWeekday := pos == 3, pos == 5
+
 		if seg == "*" || seg == "?" {
 			continue
+		}
+
+		if isMonthDay && skipMonthDayCheck {
+			continue
+		}
+
+		if isWeekday {
+			segIsIntersecting := strings.Index(seg, "*/") == 0
+			monthDaySeg := segs[3]
+			monthDaySegIsIntersecting := strings.Index(monthDaySeg, "*") == 0 || monthDaySeg == "?"
+			intersectCase := segIsIntersecting || monthDaySegIsIntersecting
+
+			if !intersectCase {
+				due, err := g.C.CheckDue(seg, pos)
+				if err != nil {
+					return false, err
+				}
+
+				monthDayDue, err := g.C.CheckDue(monthDaySeg, 3)
+				if due || monthDayDue {
+					skipMonthDayCheck = true
+					continue
+				}
+
+				if err != nil {
+					return false, err
+				}
+			}
 		}
 
 		if due, err := g.C.CheckDue(seg, pos); !due {
