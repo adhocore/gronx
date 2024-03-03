@@ -46,16 +46,71 @@ func loop(gron Gronx, segments []string, start time.Time, incl bool, reverse boo
 over:
 	for iter > 0 {
 		iter--
+		skipMonthDayForIter := false
 		for i := 0; i < len(segments); i++ {
 			pos := len(segments) - 1 - i
-			seg := segments[len(segments)-1-i]
+			seg := segments[pos]
+			isMonthDay, isWeekday := pos == 3, pos == 5
+
 			if seg == "*" || seg == "?" {
 				continue
 			}
-			if next, bumped, err = bumpUntilDue(gron.C, seg, pos, next, reverse); bumped {
+
+			if !isWeekday {
+				if isMonthDay && skipMonthDayForIter {
+					continue
+				}
+				if next, bumped, err = bumpUntilDue(gron.C, seg, pos, next, reverse); bumped {
+					goto over
+				}
+				continue
+			}
+			// From here we process the weekday segment in case it is neither * nor ?
+
+			segIsIntersecting := strings.Index(seg, "*/") == 0
+			monthDaySeg := segments[3]
+			monthDaySegIsIntersecting := strings.Index(monthDaySeg, "*") == 0 || monthDaySeg == "?"
+
+			intersectCase := segIsIntersecting || monthDaySegIsIntersecting
+
+			nextForWeekDay := next
+			nextForWeekDay, bumped, err = bumpUntilDue(gron.C, seg, pos, nextForWeekDay, reverse)
+			if !bumped {
+				// Weekday seg is specific and next is already at right weekday, so no need to process month day if union case
+				next = nextForWeekDay
+				if !intersectCase {
+					skipMonthDayForIter = true
+				}
+				continue
+			}
+			// Weekday was bumped, so we need to check for month day
+
+			if intersectCase {
+				// We need intersection so we keep bumped weekday and go over
+				next = nextForWeekDay
 				goto over
 			}
+			// Month day seg is specific and a number/list/range, so we need to check and keep the closest to next
+
+			nextForMonthDay := next
+			nextForMonthDay, bumped, err = bumpUntilDue(gron.C, monthDaySeg, 3, nextForMonthDay, reverse)
+
+			monthDayIsClosestToNextThanWeekDay := reverse && nextForMonthDay.After(nextForWeekDay) ||
+				!reverse && nextForMonthDay.Before(nextForWeekDay)
+
+			if monthDayIsClosestToNextThanWeekDay {
+				next = nextForMonthDay
+				if !bumped {
+					// Month day seg is specific and next is already at right month day, we can continue
+					skipMonthDayForIter = true
+					continue
+				}
+			} else {
+				next = nextForWeekDay
+			}
+			goto over
 		}
+
 		if !incl && next.Format(FullDateFormat) == start.Format(FullDateFormat) {
 			delta := time.Second
 			if reverse {
