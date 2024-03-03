@@ -18,7 +18,10 @@ func inStep(val int, s string, bounds []int) (bool, error) {
 		return false, errors.New("step can't be 0")
 	}
 
-	if strings.Index(s, "*/") == 0 || strings.Index(s, "0/") == 0 {
+	if strings.Index(s, "*/") == 0 {
+		return (val-bounds[0])%step == 0, nil
+	}
+	if strings.Index(s, "0/") == 0 {
 		return val%step == 0, nil
 	}
 
