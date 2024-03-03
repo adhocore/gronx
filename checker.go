@@ -126,7 +126,7 @@ func boundsByPos(pos int) (bounds []int) {
 	case 5:
 		bounds = []int{0, 7}
 	case 6:
-		bounds = []int{1, 9999}
+		bounds = []int{0, 9999}
 	}
 	return
 }

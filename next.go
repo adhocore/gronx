@@ -61,7 +61,7 @@ over:
 			if reverse {
 				delta = -time.Second
 			}
-			next, _, err = bumpUntilDue(gron.C, segments[0], 0, next.Add(delta), reverse)
+			next = next.Add(delta)
 			continue
 		}
 		return
@@ -118,6 +118,7 @@ func bump(ref time.Time, pos int, reverse bool) time.Time {
 	if reverse {
 		factor = -1
 	}
+	loc := ref.Location()
 
 	switch pos {
 	case 0:
@@ -125,37 +126,37 @@ func bump(ref time.Time, pos int, reverse bool) time.Time {
 	case 1:
 		minTime := ref.Add(time.Duration(factor) * time.Minute)
 		if reverse {
-			ref = time.Date(minTime.Year(), minTime.Month(), minTime.Day(), minTime.Hour(), minTime.Minute(), 59, 0, minTime.Location())
+			ref = time.Date(minTime.Year(), minTime.Month(), minTime.Day(), minTime.Hour(), minTime.Minute(), 59, 0, loc)
 		} else {
-			ref = time.Date(minTime.Year(), minTime.Month(), minTime.Day(), minTime.Hour(), minTime.Minute(), 0, 0, minTime.Location())
+			ref = time.Date(minTime.Year(), minTime.Month(), minTime.Day(), minTime.Hour(), minTime.Minute(), 0, 0, loc)
 		}
 	case 2:
 		hTime := ref.Add(time.Duration(factor) * time.Hour)
 		if reverse {
-			ref = time.Date(hTime.Year(), hTime.Month(), hTime.Day(), hTime.Hour(), 59, 59, 0, hTime.Location())
+			ref = time.Date(hTime.Year(), hTime.Month(), hTime.Day(), hTime.Hour(), 59, 59, 0, loc)
 		} else {
-			ref = time.Date(hTime.Year(), hTime.Month(), hTime.Day(), hTime.Hour(), 0, 0, 0, hTime.Location())
+			ref = time.Date(hTime.Year(), hTime.Month(), hTime.Day(), hTime.Hour(), 0, 0, 0, loc)
 		}
 	case 3, 5:
 		dTime := ref.AddDate(0, 0, factor)
 		if reverse {
-			ref = time.Date(dTime.Year(), dTime.Month(), dTime.Day(), 23, 59, 59, 0, dTime.Location())
+			ref = time.Date(dTime.Year(), dTime.Month(), dTime.Day(), 23, 59, 59, 0, loc)
 		} else {
-			ref = time.Date(dTime.Year(), dTime.Month(), dTime.Day(), 0, 0, 0, 0, dTime.Location())
+			ref = time.Date(dTime.Year(), dTime.Month(), dTime.Day(), 0, 0, 0, 0, loc)
 		}
 	case 4:
-		mTime := ref.AddDate(0, factor, 0)
+		ref = time.Date(ref.Year(), ref.Month(), 1, 0, 0, 0, 0, loc)
 		if reverse {
-			ref = time.Date(mTime.Year(), ref.Month(), -1, 23, 59, 59, 0, mTime.Location())
+			ref = ref.Add(time.Duration(factor) * time.Second)
 		} else {
-			ref = time.Date(mTime.Year(), mTime.Month(), 1, 0, 0, 0, 0, mTime.Location())
+			ref = ref.AddDate(0, factor, 0)
 		}
 	case 6:
 		yTime := ref.AddDate(factor, 0, 0)
 		if reverse {
-			ref = time.Date(yTime.Year(), 12, 31, 23, 59, 59, 0, yTime.Location())
+			ref = time.Date(yTime.Year(), 12, 31, 23, 59, 59, 0, loc)
 		} else {
-			ref = time.Date(yTime.Year(), 1, 1, 0, 0, 0, 0, yTime.Location())
+			ref = time.Date(yTime.Year(), 1, 1, 0, 0, 0, 0, loc)
 		}
 	}
 	return ref
