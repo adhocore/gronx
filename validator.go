@@ -121,8 +121,6 @@ func isValidWeekDay(val string, last int, ref time.Time) (bool, error) {
 				return ref.Day() == day, nil
 			}
 		}
-
-		return false, nil
 	}
 
 	pos := strings.Index(val, "#")
