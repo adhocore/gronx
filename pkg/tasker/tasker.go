@@ -256,6 +256,11 @@ func (t *Tasker) Run() {
 	t.wait()
 }
 
+// Stop the task manager.
+func (t *Tasker) Stop() {
+	t.abort = true
+}
+
 var dateFormat = "2006/01/02 15:04:05"
 
 func (t *Tasker) doSetup() {
