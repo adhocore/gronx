@@ -2,7 +2,6 @@ package gronx
 
 import (
 	"errors"
-	"fmt"
 	"regexp"
 	"strings"
 	"time"
@@ -43,7 +42,6 @@ func AddTag(tag, expr string) error {
 	expr = strings.Join(segs, " ")
 
 	expressions[tag] = expr
-	fmt.Println(expr)
 	return nil
 }
 

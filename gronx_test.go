@@ -99,6 +99,15 @@ func TestAddTag(t *testing.T) {
 		if err != nil {
 			t.Error("expected nil, got err")
 		}
+
+		expr, ok := expressions["@2s"]
+		if !ok {
+			t.Error("expected true, got false")
+		}
+
+		if expr != "*/2 * * * * *" {
+			t.Error("expected */2 * * * * *")
+		}
 	})
 
 	t.Run("add conflict tag", func(t *testing.T) {
