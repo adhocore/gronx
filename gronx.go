@@ -2,6 +2,7 @@ package gronx
 
 import (
 	"errors"
+	"fmt"
 	"regexp"
 	"strings"
 	"time"
@@ -27,6 +28,23 @@ var expressions = map[string]string{
 	"@30minutes": "0,30 * * * *",
 
 	"@everysecond": "* * * * * *",
+}
+
+func AddTag(tag, expr string) error {
+	_, ok := expressions[tag]
+	if ok {
+		return errors.New("conflict tag")
+	}
+
+	segs, err := Segments(expr)
+	if err != nil {
+		return err
+	}
+	expr = strings.Join(segs, " ")
+
+	expressions[tag] = expr
+	fmt.Println(expr)
+	return nil
 }
 
 // SpaceRe is regex for whitespace.

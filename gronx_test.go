@@ -93,6 +93,29 @@ func TestIsValid(t *testing.T) {
 
 }
 
+func TestAddTag(t *testing.T) {
+	t.Run("add good tag", func(t *testing.T) {
+		err := AddTag("@2s", "*/2 * * * * *")
+		if err != nil {
+			t.Error("expected nil, got err")
+		}
+	})
+
+	t.Run("add conflict tag", func(t *testing.T) {
+		err := AddTag("@2s", "*/2 * * * * *")
+		if err == nil {
+			t.Error("expected err, got nil")
+		}
+	})
+
+	t.Run("add wrong tag", func(t *testing.T) {
+		err := AddTag("@3s", "* * * *")
+		if err == nil {
+			t.Error("expected err, got nil")
+		}
+	})
+}
+
 func TestIsDue(t *testing.T) {
 	gron := New()
 
