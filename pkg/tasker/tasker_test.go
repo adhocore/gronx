@@ -200,3 +200,26 @@ func TestConcurrency(t *testing.T) {
 		}
 	})
 }
+
+func TestStopTasker(t *testing.T) {
+	t.Run("Run", func(t *testing.T) {
+		taskr := New(Option{Verbose: true, Out: "../../test/tasker.out"})
+
+		var incr int
+		taskr.Task("* * * * * *", func(ctx context.Context) (int, error) {
+			incr++
+			return 0, nil
+		}, false)
+
+		go func() {
+			time.Sleep(2 * time.Second)
+			taskr.Stop()
+		}()
+		taskr.Run()
+		fmt.Println(incr)
+
+		if incr != 1 {
+			t.Errorf("the task should run 1x, not %dx", incr)
+		}
+	})
+}
