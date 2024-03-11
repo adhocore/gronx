@@ -111,12 +111,10 @@ func (g *Gronx) SegmentsDue(segs []string) (bool, error) {
 		}
 
 		if isWeekday {
-			segIsIntersecting := strings.Index(seg, "*/") == 0
 			monthDaySeg := segs[3]
-			monthDaySegIsIntersecting := strings.Index(monthDaySeg, "*") == 0 || monthDaySeg == "?"
-			intersectCase := segIsIntersecting || monthDaySegIsIntersecting
+			intersect := strings.Index(seg, "*/") == 0 || strings.Index(monthDaySeg, "*") == 0 || monthDaySeg == "?"
 
-			if !intersectCase {
+			if !intersect {
 				due, err := g.C.CheckDue(seg, pos)
 				if err != nil {
 					return false, err

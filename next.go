@@ -67,25 +67,22 @@ over:
 			}
 			// From here we process the weekday segment in case it is neither * nor ?
 
-			segIsIntersecting := strings.Index(seg, "*/") == 0
 			monthDaySeg := segments[3]
-			monthDaySegIsIntersecting := strings.Index(monthDaySeg, "*") == 0 || monthDaySeg == "?"
-
-			intersectCase := segIsIntersecting || monthDaySegIsIntersecting
+			intersect := strings.Index(seg, "*/") == 0 || strings.Index(monthDaySeg, "*") == 0 || monthDaySeg == "?"
 
 			nextForWeekDay := next
 			nextForWeekDay, bumped, err = bumpUntilDue(gron.C, seg, pos, nextForWeekDay, reverse)
 			if !bumped {
 				// Weekday seg is specific and next is already at right weekday, so no need to process month day if union case
 				next = nextForWeekDay
-				if !intersectCase {
+				if !intersect {
 					skipMonthDayForIter = true
 				}
 				continue
 			}
 			// Weekday was bumped, so we need to check for month day
 
-			if intersectCase {
+			if intersect {
 				// We need intersection so we keep bumped weekday and go over
 				next = nextForWeekDay
 				goto over
@@ -162,57 +159,62 @@ func bumpUntilDue(c Checker, segment string, pos int, ref time.Time, reverse boo
 		if ok, _ := c.CheckDue(segment, pos); ok {
 			return ref, iter != limit[pos], nil
 		}
-		ref = bump(ref, pos, reverse)
+		if reverse {
+			ref = bumpReverse(ref, pos)
+		} else {
+			ref = bump(ref, pos)
+		}
 		iter--
 	}
 	return ref, false, errors.New("tried so hard")
 }
 
-func bump(ref time.Time, pos int, reverse bool) time.Time {
-	factor := 1
-	if reverse {
-		factor = -1
-	}
+func bump(ref time.Time, pos int) time.Time {
 	loc := ref.Location()
 
 	switch pos {
 	case 0:
-		ref = ref.Add(time.Duration(factor) * time.Second)
+		ref = ref.Add(time.Second)
 	case 1:
-		minTime := ref.Add(time.Duration(factor) * time.Minute)
-		if reverse {
-			ref = time.Date(minTime.Year(), minTime.Month(), minTime.Day(), minTime.Hour(), minTime.Minute(), 59, 0, loc)
-		} else {
-			ref = time.Date(minTime.Year(), minTime.Month(), minTime.Day(), minTime.Hour(), minTime.Minute(), 0, 0, loc)
-		}
+		minTime := ref.Add(time.Minute)
+		ref = time.Date(minTime.Year(), minTime.Month(), minTime.Day(), minTime.Hour(), minTime.Minute(), 0, 0, loc)
 	case 2:
-		hTime := ref.Add(time.Duration(factor) * time.Hour)
-		if reverse {
-			ref = time.Date(hTime.Year(), hTime.Month(), hTime.Day(), hTime.Hour(), 59, 59, 0, loc)
-		} else {
-			ref = time.Date(hTime.Year(), hTime.Month(), hTime.Day(), hTime.Hour(), 0, 0, 0, loc)
-		}
+		hTime := ref.Add(time.Hour)
+		ref = time.Date(hTime.Year(), hTime.Month(), hTime.Day(), hTime.Hour(), 0, 0, 0, loc)
 	case 3, 5:
-		dTime := ref.AddDate(0, 0, factor)
-		if reverse {
-			ref = time.Date(dTime.Year(), dTime.Month(), dTime.Day(), 23, 59, 59, 0, loc)
-		} else {
-			ref = time.Date(dTime.Year(), dTime.Month(), dTime.Day(), 0, 0, 0, 0, loc)
-		}
+		dTime := ref.AddDate(0, 0, 1)
+		ref = time.Date(dTime.Year(), dTime.Month(), dTime.Day(), 0, 0, 0, 0, loc)
 	case 4:
 		ref = time.Date(ref.Year(), ref.Month(), 1, 0, 0, 0, 0, loc)
-		if reverse {
-			ref = ref.Add(time.Duration(factor) * time.Second)
-		} else {
-			ref = ref.AddDate(0, factor, 0)
-		}
+		ref = ref.AddDate(0, 1, 0)
 	case 6:
-		yTime := ref.AddDate(factor, 0, 0)
-		if reverse {
-			ref = time.Date(yTime.Year(), 12, 31, 23, 59, 59, 0, loc)
-		} else {
-			ref = time.Date(yTime.Year(), 1, 1, 0, 0, 0, 0, loc)
-		}
+		yTime := ref.AddDate(1, 0, 0)
+		ref = time.Date(yTime.Year(), 1, 1, 0, 0, 0, 0, loc)
+	}
+	return ref
+}
+
+func bumpReverse(ref time.Time, pos int) time.Time {
+	loc := ref.Location()
+
+	switch pos {
+	case 0:
+		ref = ref.Add(-time.Second)
+	case 1:
+		minTime := ref.Add(-time.Minute)
+		ref = time.Date(minTime.Year(), minTime.Month(), minTime.Day(), minTime.Hour(), minTime.Minute(), 59, 0, loc)
+	case 2:
+		hTime := ref.Add(-time.Hour)
+		ref = time.Date(hTime.Year(), hTime.Month(), hTime.Day(), hTime.Hour(), 59, 59, 0, loc)
+	case 3, 5:
+		dTime := ref.AddDate(0, 0, -1)
+		ref = time.Date(dTime.Year(), dTime.Month(), dTime.Day(), 23, 59, 59, 0, loc)
+	case 4:
+		ref = time.Date(ref.Year(), ref.Month(), 1, 0, 0, 0, 0, loc)
+		ref = ref.Add(-time.Second)
+	case 6:
+		yTime := ref.AddDate(-1, 0, 0)
+		ref = time.Date(yTime.Year(), 12, 31, 23, 59, 59, 0, loc)
 	}
 	return ref
 }
