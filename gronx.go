@@ -29,6 +29,7 @@ var expressions = map[string]string{
 	"@everysecond": "* * * * * *",
 }
 
+// AddTag adds a new custom tag representing given expr
 func AddTag(tag, expr string) error {
 	_, ok := expressions[tag]
 	if ok {
