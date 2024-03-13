@@ -68,8 +68,8 @@ type Gronx struct {
 }
 
 // New initializes Gronx with factory defaults.
-func New() Gronx {
-	return Gronx{&SegmentChecker{}}
+func New() *Gronx {
+	return &Gronx{&SegmentChecker{}}
 }
 
 // IsDue checks if cron expression is due for given reference time (or now).
@@ -157,6 +157,9 @@ func (g *Gronx) SegmentsDue(segs []string) (bool, error) {
 	return true, nil
 }
 
+// checker for validity
+var checker = &SegmentChecker{ref: time.Now()}
+
 // IsValid checks if cron expression is valid.
 // It returns bool.
 func (g *Gronx) IsValid(expr string) bool {
@@ -165,9 +168,8 @@ func (g *Gronx) IsValid(expr string) bool {
 		return false
 	}
 
-	c := &SegmentChecker{ref: time.Now()}
 	for pos, seg := range segs {
-		if _, err := c.CheckDue(seg, pos); err != nil {
+		if _, err := checker.CheckDue(seg, pos); err != nil {
 			return false
 		}
 	}
