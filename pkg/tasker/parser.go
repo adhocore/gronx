@@ -43,7 +43,7 @@ func MustParseTaskfile(opts Option) []Task {
 }
 
 // var cronRe = regexp.MustCompile(`^((?:[^\s]+\s+){5,6}(?:\d{4})?)(?:\s+)?(.*)`)
-var aliasRe = regexp.MustCompile(`^(@(?:annually|yearly|monthly|weekly|daily|hourly|5minutes|10minutes|15minutes|30minutes|always))(?:\s+)?(.*)`)
+var aliasRe = regexp.MustCompile(`^(@(?:annually|yearly|monthly|weekly|daily|hourly|5minutes|10minutes|15minutes|30minutes|always|everysecond))(?:\s+)?(.*)`)
 var segRe = regexp.MustCompile(`(?i),|/\d+$|^\d+-\d+$|^([0-7]|sun|mon|tue|wed|thu|fri|sat)(L|W|#\d)?$|-([0-7]|sun|mon|tue|wed|thu|fri|sat)$|\d{4}`)
 
 func linesToTasks(lines []string) []Task {

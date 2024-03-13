@@ -95,7 +95,7 @@ func New(opt Option) *Tasker {
 		logger = log.New(file, "", log.LstdFlags)
 	}
 
-	return &Tasker{Log: logger, loc: loc, gron: &gron, exprs: exprs, tasks: tasks, verbose: opt.Verbose}
+	return &Tasker{Log: logger, loc: loc, gron: gron, exprs: exprs, tasks: tasks, verbose: opt.Verbose}
 }
 
 // WithContext adds a parent context to the Tasker struct
@@ -121,6 +121,7 @@ func (t *Tasker) Taskify(cmd string, opt Option) TaskFunc {
 		buf := strings.Builder{}
 		exc := exec.Command(sh[0], sh[1], cmd)
 		exc.Stderr = &buf
+		exc.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 
 		if t.Log.Writer() != exc.Stderr {
 			exc.Stdout = t.Log.Writer()
@@ -285,7 +286,7 @@ func (t *Tasker) doSetup() {
 		go t.ctxDone()
 	}
 
-	sig := make(chan os.Signal)
+	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
