@@ -2,7 +2,6 @@ package gronx
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"testing"
 	"time"
@@ -15,13 +14,16 @@ type Case struct {
 	Next   string `json:"next"`
 }
 
-func (test Case) run(gron Gronx) (bool, error) {
+func (test Case) run(t *testing.T, gron *Gronx) (bool, error) {
 	if test.Ref == "" {
 		return gron.IsDue(test.Expr)
 	}
 
 	ref, err := time.Parse(FullDateFormat, test.Ref)
-	abort(err)
+	if err != nil {
+		t.Errorf("can't parse date: %s", test.Ref)
+		t.Fail()
+	}
 
 	return gron.IsDue(test.Expr, ref)
 }
@@ -144,7 +146,7 @@ func TestIsDue(t *testing.T) {
 
 	for i, test := range testcases() {
 		t.Run(fmt.Sprintf("is due #%d=%s", i, test.Expr), func(t *testing.T) {
-			actual, _ := test.run(gron)
+			actual, _ := test.run(t, gron)
 
 			if actual != test.Expect {
 				t.Errorf("expected %v, got %v", test.Expect, actual)
@@ -154,7 +156,7 @@ func TestIsDue(t *testing.T) {
 
 	for i, test := range errcases() {
 		t.Run(fmt.Sprintf("is due err #%d=%s", i, test.Expr), func(t *testing.T) {
-			actual, err := test.run(gron)
+			actual, err := test.run(t, gron)
 
 			if actual != test.Expect {
 				t.Errorf("expected %v, got %v", test.Expect, actual)
@@ -289,13 +291,7 @@ func errcases() []Case {
 		{"* * * * * ZL", "", false, ""},
 		{"* * * * * Z#", "", false, ""},
 		{"* * * * * 1#Z", "", false, ""},
-		{"* * W * 3", "", false, ""},
+		{"* * W * L", "", false, ""},
 		{"* * 15 * 1#Z", "", false, ""},
-	}
-}
-
-func abort(err error) {
-	if err != nil {
-		log.Fatalf("%+v", err)
 	}
 }
