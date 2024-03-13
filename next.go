@@ -41,7 +41,7 @@ func NextTickAfter(expr string, start time.Time, inclRefTime bool) (time.Time, e
 	return next, err
 }
 
-func loop(gron Gronx, segments []string, start time.Time, incl bool, reverse bool) (next time.Time, err error) {
+func loop(gron *Gronx, segments []string, start time.Time, incl bool, reverse bool) (next time.Time, err error) {
 	iter, next, bumped := 500, start, false
 over:
 	for iter > 0 {
@@ -190,31 +190,6 @@ func bump(ref time.Time, pos int) time.Time {
 	case 6:
 		yTime := ref.AddDate(1, 0, 0)
 		ref = time.Date(yTime.Year(), 1, 1, 0, 0, 0, 0, loc)
-	}
-	return ref
-}
-
-func bumpReverse(ref time.Time, pos int) time.Time {
-	loc := ref.Location()
-
-	switch pos {
-	case 0:
-		ref = ref.Add(-time.Second)
-	case 1:
-		minTime := ref.Add(-time.Minute)
-		ref = time.Date(minTime.Year(), minTime.Month(), minTime.Day(), minTime.Hour(), minTime.Minute(), 59, 0, loc)
-	case 2:
-		hTime := ref.Add(-time.Hour)
-		ref = time.Date(hTime.Year(), hTime.Month(), hTime.Day(), hTime.Hour(), 59, 59, 0, loc)
-	case 3, 5:
-		dTime := ref.AddDate(0, 0, -1)
-		ref = time.Date(dTime.Year(), dTime.Month(), dTime.Day(), 23, 59, 59, 0, loc)
-	case 4:
-		ref = time.Date(ref.Year(), ref.Month(), 1, 0, 0, 0, 0, loc)
-		ref = ref.Add(-time.Second)
-	case 6:
-		yTime := ref.AddDate(-1, 0, 0)
-		ref = time.Date(yTime.Year(), 12, 31, 23, 59, 59, 0, loc)
 	}
 	return ref
 }
