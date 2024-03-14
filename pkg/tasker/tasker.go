@@ -95,7 +95,17 @@ func New(opt Option) *Tasker {
 		logger = log.New(file, "", log.LstdFlags)
 	}
 
-	return &Tasker{Log: logger, loc: loc, gron: gron, exprs: exprs, tasks: tasks, verbose: opt.Verbose}
+	ctx, cancel := context.WithCancel(context.Background())
+	return &Tasker{
+		Log:       logger,
+		loc:       loc,
+		gron:      gron,
+		exprs:     exprs,
+		tasks:     tasks,
+		verbose:   opt.Verbose,
+		ctx:       ctx,
+		ctxCancel: cancel,
+	}
 }
 
 // WithContext adds a parent context to the Tasker struct
@@ -103,14 +113,6 @@ func New(opt Option) *Tasker {
 func (t *Tasker) WithContext(ctx context.Context) *Tasker {
 	t.ctx, t.ctxCancel = context.WithCancel(ctx)
 	return t
-}
-
-func (t *Tasker) ctxDone() {
-	<-t.ctx.Done()
-	if t.verbose {
-		t.Log.Printf("[tasker] received signal on context.Done, aborting")
-	}
-	t.abort = true
 }
 
 // Taskify creates TaskFunc out of plain command wrt given options.
@@ -259,6 +261,11 @@ func (t *Tasker) Run() {
 
 // Stop the task manager.
 func (t *Tasker) Stop() {
+	t.stop()
+}
+
+func (t *Tasker) stop() {
+	t.ctxCancel()
 	t.abort = true
 }
 
@@ -282,16 +289,20 @@ func (t *Tasker) doSetup() {
 			break
 		}
 	}
-	if t.ctx != nil {
-		go t.ctxDone()
-	}
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
-		<-sig
-		t.abort = true
+		select {
+		case <-sig:
+		case <-t.ctx.Done():
+			if t.verbose {
+				t.Log.Printf("[tasker] received signal on context.Done, aborting")
+			}
+		}
+
+		t.stop()
 	}()
 }
 
