@@ -39,25 +39,26 @@ type Task struct {
 
 // Tasker is the task manager.
 type Tasker struct {
-	Log       *log.Logger
+	until     time.Time
+	ctx       context.Context
 	loc       *time.Location
 	gron      *gronx.Gronx
-	wg        sync.WaitGroup
-	until     time.Time
+	Log       *log.Logger
 	exprs     map[string][]string
 	tasks     map[string]TaskFunc
 	mutex     map[string]uint32
-	abort     bool
-	timeout   bool
-	verbose   bool
-	ctx       context.Context
 	ctxCancel context.CancelFunc
+	wg        sync.WaitGroup
+	verbose   bool
+	running   bool
+	timeout   bool
+	abort     bool
 }
 
 type result struct {
+	err  error
 	ref  string
 	code int
-	err  error
 }
 
 var exit = os.Exit
@@ -228,6 +229,7 @@ func (t *Tasker) now() time.Time {
 // Run runs the task manager.
 func (t *Tasker) Run() {
 	t.doSetup()
+	t.running = true
 
 	first := true
 	for !t.abort && !t.timeout {
@@ -257,6 +259,12 @@ func (t *Tasker) Run() {
 	}
 
 	t.wait()
+	t.running = false
+}
+
+// Running tells if tasker is up and running
+func (t *Tasker) Running() bool {
+	return t.running && !t.abort && !t.timeout
 }
 
 // Stop the task manager.
@@ -396,7 +404,7 @@ func (t *Tasker) doRun(ctx context.Context, ref string, task TaskFunc, rc chan r
 		t.mutex[ref] = 0
 	}
 
-	rc <- result{ref, code, err}
+	rc <- result{err, ref, code}
 }
 
 func (t *Tasker) doOut(rc chan result) {
