@@ -7,9 +7,9 @@ import (
 
 // Expr represents an item in array for batch check
 type Expr struct {
+	Err  error
 	Expr string
 	Due  bool
-	Err  error
 }
 
 // BatchDue checks if multiple expressions are due for given time (or now).
