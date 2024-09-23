@@ -91,6 +91,9 @@ func TestIsValid(t *testing.T) {
 		if gron.IsValid("* * * *") {
 			t.Errorf("expected false, got true")
 		}
+		if gron.IsValid("0-0/-005 * * * *") {
+			t.Errorf("expected true, got false")
+		}
 	})
 
 }

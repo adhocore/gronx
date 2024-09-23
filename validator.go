@@ -14,7 +14,7 @@ func inStep(val int, s string, bounds []int) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	if step == 0 {
+	if step <= 0 {
 		return false, errors.New("step can't be 0")
 	}
 
