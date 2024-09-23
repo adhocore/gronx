@@ -47,6 +47,14 @@ gron.IsDue(expr) // true|false, nil
 gron.IsDue(expr, time.Date(2021, time.April, 1, 1, 1, 0, 0, time.UTC)) // true|false, nil
 ```
 
+> Validity can be checked without instantiation:
+
+```go
+import "github.com/adhocore/gronx"
+
+gronx.IsValid("* * * * *") // true
+```
+
 ### Batch Due Check
 
 If you have multiple cron expressions to check due on same reference time use `BatchDue()`:

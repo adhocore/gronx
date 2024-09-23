@@ -60,6 +60,9 @@ func TestIsValid(t *testing.T) {
 		if !gron.IsValid("* 00 * * *") {
 			t.Errorf("expected true, got false")
 		}
+		if expr := "* * * * *"; IsValid(expr) != gron.IsValid(expr) {
+			t.Error("IsValid func and method must return same")
+		}
 	})
 
 	t.Run("is not valid", func(t *testing.T) {

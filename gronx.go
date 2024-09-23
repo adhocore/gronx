@@ -75,7 +75,9 @@ func New() *Gronx {
 // IsDue checks if cron expression is due for given reference time (or now).
 // It returns bool or error if any.
 func (g *Gronx) IsDue(expr string, ref ...time.Time) (bool, error) {
-	ref = append(ref, time.Now())
+	if len(ref) == 0 {
+		ref = append(ref, time.Now())
+	}
 	g.C.SetRef(ref[0])
 
 	segs, err := Segments(expr)
@@ -157,12 +159,16 @@ func (g *Gronx) SegmentsDue(segs []string) (bool, error) {
 	return true, nil
 }
 
+// IsValid checks if cron expression is valid.
+// It returns bool.
+func (g *Gronx) IsValid(expr string) bool { return IsValid(expr) }
+
 // checker for validity
 var checker = &SegmentChecker{ref: time.Now()}
 
 // IsValid checks if cron expression is valid.
 // It returns bool.
-func (g *Gronx) IsValid(expr string) bool {
+func IsValid(expr string) bool {
 	segs, err := Segments(expr)
 	if err != nil {
 		return false
