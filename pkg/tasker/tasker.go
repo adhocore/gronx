@@ -46,7 +46,7 @@ type Tasker struct {
 	Log       *log.Logger
 	exprs     map[string][]string
 	tasks     map[string]TaskFunc
-	mutex     map[string]uint32
+	mutex     map[string]*uint32
 	ctxCancel context.CancelFunc
 	wg        sync.WaitGroup
 	verbose   bool
@@ -198,9 +198,9 @@ func (t *Tasker) Task(expr string, task TaskFunc, concurrent ...bool) *Tasker {
 
 	if !concurrent[0] {
 		if len(t.mutex) == 0 {
-			t.mutex = map[string]uint32{}
+			t.mutex = make(map[string]*uint32)
 		}
-		t.mutex[ref] = 0
+		t.mutex[ref] = new(uint32)
 	}
 
 	return t
@@ -378,14 +378,7 @@ func (t *Tasker) runTasks(tasks map[string]TaskFunc) {
 
 func (t *Tasker) canRun(ref string) bool {
 	lock, ok := t.mutex[ref]
-	if !ok {
-		return true
-	}
-	if atomic.CompareAndSwapUint32(&lock, 0, 1) {
-		t.mutex[ref] = 1
-		return true
-	}
-	return false
+	return !ok || atomic.CompareAndSwapUint32(lock, 0, 1)
 }
 
 func (t *Tasker) doRun(ctx context.Context, ref string, task TaskFunc, rc chan result) {
@@ -400,8 +393,7 @@ func (t *Tasker) doRun(ctx context.Context, ref string, task TaskFunc, rc chan r
 
 	code, err := task(ctx)
 	if lock, ok := t.mutex[ref]; ok {
-		atomic.StoreUint32(&lock, 0)
-		t.mutex[ref] = 0
+		atomic.StoreUint32(lock, 0)
 	}
 
 	rc <- result{err, ref, code}
