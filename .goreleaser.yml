@@ -1,3 +1,8 @@
+
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+
+version: 2
+
 project_name: tasker
 
 release:
@@ -11,41 +16,37 @@ before:
     - go mod tidy
 
 builds:
-  - <<: &build_defaults
-      binary: bin/tasker
-      main: ./cmd/tasker
-      ldflags:
-        - -X main.Version={{.Version}}
-      env:
-        - CGO_ENABLED=0
-    id: macOS
+  - id: macOS
+    binary: bin/tasker
+    main: ./cmd/tasker
+    ldflags:
+      - -X main.Version={{.Version}}
+    env:
+      - CGO_ENABLED=0
     goos: [darwin]
     goarch: [amd64, arm64]
 
-  - <<: *build_defaults
-    id: linux
+  - id: linux
+    main: ./cmd/tasker
     goos: [linux]
-    goarch: [386, arm, amd64, arm64]
+    goarch: ["386", arm, amd64, arm64]
 
-  - <<: *build_defaults
-    id: windows
+  - id: windows
+    main: ./cmd/tasker
     goos: [windows]
     goarch: [amd64]
 
 archives:
   - id: nix
     builds: [macOS, linux]
-    <<: &archive_defaults
-      name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
     wrap_in_directory: true
-    rlcp: true
     format: tar.gz
     files:
       - LICENSE
 
   - id: windows
     builds: [windows]
-    <<: *archive_defaults
     wrap_in_directory: false
     format: zip
     files:
@@ -56,7 +57,7 @@ checksum:
   algorithm: sha256
 
 changelog:
-  skip: true
+  disable: true
   use: github
   sort: desc
   filters:
