@@ -72,3 +72,18 @@ func TestNextTickAfter(t *testing.T) {
 		}
 	})
 }
+
+// https://github.com/adhocore/gronx/issues/51
+func TestIsUnreachableYearCurrentYear(t *testing.T) {
+	now := time.Date(2024, time.November, 8, 22, 18, 16, 0, time.UTC)
+
+	cronExpr := "30 15 4 11 * 2024"
+	expectedTime := time.Date(2024, time.November, 4, 15, 30, 0, 0, time.UTC)
+	actualTime, err := PrevTickBefore(cronExpr, now, true)
+
+	if err != nil {
+		t.Errorf("got unexpected error: %s", err)
+	} else if !actualTime.Equal(expectedTime) {
+		t.Errorf("expected previous tick to be %v, got %v", expectedTime, actualTime)
+	}
+}

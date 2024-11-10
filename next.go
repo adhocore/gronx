@@ -141,7 +141,7 @@ func isUnreachableYear(year string, ref time.Time, incl bool, reverse bool) bool
 		}
 		for _, part := range strings.Split(dashRe.ReplaceAllString(offset, ""), "-") {
 			val, err := strconv.Atoi(part)
-			if err != nil || (!reverse && val >= edge) || (reverse && val < edge) {
+			if err != nil || (!reverse && val >= edge) || (reverse && val <= edge) {
 				return false
 			}
 		}
