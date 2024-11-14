@@ -87,3 +87,18 @@ func TestIsUnreachableYearCurrentYear(t *testing.T) {
 		t.Errorf("expected previous tick to be %v, got %v", expectedTime, actualTime)
 	}
 }
+
+// https://github.com/adhocore/gronx/issues/53
+func TestIsUnreachableYearCurrentYearReverse(t *testing.T) {
+	now := time.Date(2024, time.November, 8, 22, 18, 16, 0, time.UTC)
+
+	cronExpr := "30 15 31 12 * 2024"
+	expectedTime := time.Date(2024, time.December, 31, 15, 30, 0, 0, time.UTC)
+	actualTime, err := NextTickAfter(cronExpr, now, false)
+
+	if err != nil {
+		t.Errorf("got unexpected error: %s", err)
+	} else if !actualTime.Equal(expectedTime) {
+		t.Errorf("expected previous tick to be %v, got %v", expectedTime, actualTime)
+	}
+}
