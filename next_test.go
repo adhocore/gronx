@@ -2,6 +2,7 @@ package gronx
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 )
@@ -73,32 +74,96 @@ func TestNextTickAfter(t *testing.T) {
 	})
 }
 
-// https://github.com/adhocore/gronx/issues/51
-func TestIsUnreachableYearCurrentYear(t *testing.T) {
+func TestIsUnreachableYearPrevTickBefore(t *testing.T) {
 	now := time.Date(2024, time.November, 8, 22, 18, 16, 0, time.UTC)
+	tests := []struct {
+		name         string
+		cronExpr     string
+		expectedTime time.Time
+		expectError  bool
+	}{
+		{
+			// https://github.com/adhocore/gronx/issues/51
+			name:         "Current Year - Previous Tick",
+			cronExpr:     "30 15 4 11 * 2024",
+			expectedTime: time.Date(2024, time.November, 4, 15, 30, 0, 0, time.UTC),
+			expectError:  false,
+		},
+		{
+			name:         "Next Year - Previous Tick (Unreachable Year)",
+			cronExpr:     "30 15 4 11 * 2025",
+			expectedTime: time.Time{}, // Error expected
+			expectError:  true,
+		},
+		{
+			name:         "Previous Year - Previous Tick",
+			cronExpr:     "30 15 4 11 * 2023",
+			expectedTime: time.Date(2023, time.November, 4, 15, 30, 0, 0, time.UTC),
+			expectError:  false,
+		},
+	}
 
-	cronExpr := "30 15 4 11 * 2024"
-	expectedTime := time.Date(2024, time.November, 4, 15, 30, 0, 0, time.UTC)
-	actualTime, err := PrevTickBefore(cronExpr, now, true)
-
-	if err != nil {
-		t.Errorf("got unexpected error: %s", err)
-	} else if !actualTime.Equal(expectedTime) {
-		t.Errorf("expected previous tick to be %v, got %v", expectedTime, actualTime)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			actualTime, err := PrevTickBefore(tc.cronExpr, now, true)
+			if tc.expectError {
+				if err == nil || !strings.Contains(err.Error(), "unreachable year segment") {
+					t.Errorf("expected unreachable year error, got: %v", err)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("unexpected error: %v", err)
+				} else if !actualTime.Equal(tc.expectedTime) {
+					t.Errorf("expected previous tick to be %v, got %v", tc.expectedTime, actualTime)
+				}
+			}
+		})
 	}
 }
 
-// https://github.com/adhocore/gronx/issues/53
-func TestIsUnreachableYearCurrentYearReverse(t *testing.T) {
+func TestIsUnreachableYearNextTickAfter(t *testing.T) {
 	now := time.Date(2024, time.November, 8, 22, 18, 16, 0, time.UTC)
+	tests := []struct {
+		name         string
+		cronExpr     string
+		expectedTime time.Time
+		expectError  bool
+	}{
+		{
+			// https://github.com/adhocore/gronx/issues/53
+			name:         "Current Year - Next Tick",
+			cronExpr:     "30 15 31 12 * 2024",
+			expectedTime: time.Date(2024, time.December, 31, 15, 30, 0, 0, time.UTC),
+			expectError:  false,
+		},
+		{
+			name:         "Next Year - Next Tick",
+			cronExpr:     "30 15 31 12 * 2025",
+			expectedTime: time.Date(2025, time.December, 31, 15, 30, 0, 0, time.UTC),
+			expectError:  false,
+		},
+		{
+			name:         "Previous Year - Next Tick (Unreachable Year)",
+			cronExpr:     "30 15 31 12 * 2023",
+			expectedTime: time.Time{}, // Error expected
+			expectError:  true,
+		},
+	}
 
-	cronExpr := "30 15 31 12 * 2024"
-	expectedTime := time.Date(2024, time.December, 31, 15, 30, 0, 0, time.UTC)
-	actualTime, err := NextTickAfter(cronExpr, now, false)
-
-	if err != nil {
-		t.Errorf("got unexpected error: %s", err)
-	} else if !actualTime.Equal(expectedTime) {
-		t.Errorf("expected previous tick to be %v, got %v", expectedTime, actualTime)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			actualTime, err := NextTickAfter(tc.cronExpr, now, false)
+			if tc.expectError {
+				if err == nil || !strings.Contains(err.Error(), "unreachable year segment") {
+					t.Errorf("expected unreachable year error, got: %v", err)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("unexpected error: %v", err)
+				} else if !actualTime.Equal(tc.expectedTime) {
+					t.Errorf("expected next tick to be %v, got %v", tc.expectedTime, actualTime)
+				}
+			}
+		})
 	}
 }
