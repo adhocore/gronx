@@ -29,7 +29,7 @@ func NextTickAfter(expr string, start time.Time, inclRefTime bool) (time.Time, e
 	}
 
 	segments, _ := Segments(expr)
-	if len(segments) > 6 && isUnreachableYear(segments[6], next, inclRefTime, false) {
+	if len(segments) > 6 && isUnreachableYear(segments[6], next, false) {
 		return next, fmt.Errorf("unreachable year segment: %s", segments[6])
 	}
 
@@ -123,18 +123,12 @@ over:
 
 var dashRe = regexp.MustCompile(`/.*$`)
 
-func isUnreachableYear(year string, ref time.Time, incl bool, reverse bool) bool {
+func isUnreachableYear(year string, ref time.Time, reverse bool) bool {
 	if year == "*" || year == "?" {
 		return false
 	}
 
-	edge, inc := ref.Year(), 1
-	if !incl {
-		if reverse {
-			inc = -1
-		}
-		edge += inc
-	}
+	edge := ref.Year()
 	for _, offset := range strings.Split(year, ",") {
 		if strings.Index(offset, "*/") == 0 || strings.Index(offset, "0/") == 0 {
 			return false
