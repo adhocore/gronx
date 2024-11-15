@@ -19,7 +19,7 @@ func PrevTickBefore(expr string, start time.Time, inclRefTime bool) (time.Time, 
 	}
 
 	segments, _ := Segments(expr)
-	if len(segments) > 6 && isUnreachableYear(segments[6], prev, inclRefTime, true) {
+	if len(segments) > 6 && isUnreachableYear(segments[6], prev, true) {
 		return prev, fmt.Errorf("unreachable year segment: %s", segments[6])
 	}
 
