@@ -171,10 +171,18 @@ func bump(ref time.Time, pos int) time.Time {
 		ref = ref.Add(time.Second)
 	case 1:
 		minTime := ref.Add(time.Minute)
-		ref = time.Date(minTime.Year(), minTime.Month(), minTime.Day(), minTime.Hour(), minTime.Minute(), 0, 0, loc)
+		next := time.Date(minTime.Year(), minTime.Month(), minTime.Day(), minTime.Hour(), minTime.Minute(), 0, 0, loc)
+		if !next.After(ref) {
+			next = next.Add(time.Hour)
+		}
+		ref = next
 	case 2:
 		hTime := ref.Add(time.Hour)
-		ref = time.Date(hTime.Year(), hTime.Month(), hTime.Day(), hTime.Hour(), 0, 0, 0, loc)
+		next := time.Date(hTime.Year(), hTime.Month(), hTime.Day(), hTime.Hour(), 0, 0, 0, loc)
+		if !next.After(ref) {
+			next = next.Add(time.Hour)
+		}
+		ref = next
 	case 3, 5:
 		dTime := ref.AddDate(0, 0, 1)
 		ref = time.Date(dTime.Year(), dTime.Month(), dTime.Day(), 0, 0, 0, 0, loc)

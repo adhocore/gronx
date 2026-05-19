@@ -167,3 +167,42 @@ func TestIsUnreachableYearNextTickAfter(t *testing.T) {
 		})
 	}
 }
+
+// https://github.com/adhocore/gronx/issues/50
+func TestNextTickAfterDSTFallBack(t *testing.T) {
+	et, err := time.LoadLocation("America/New_York")
+	if err != nil {
+		t.Fatalf("load location: %v", err)
+	}
+
+	tests := []struct {
+		name         string
+		cronExpr     string
+		ref          time.Time
+		expectedTime time.Time
+	}{
+		{
+			name:         "every 8h, ambiguous hour skipped by schedule",
+			cronExpr:     "0 */8 * * *",
+			ref:          time.Date(2024, time.November, 3, 0, 30, 0, 0, et),
+			expectedTime: time.Date(2024, time.November, 3, 8, 0, 0, 0, et),
+		},
+		{
+			name:         "daily 12:10 across fall-back",
+			cronExpr:     "10 12 * * *",
+			ref:          time.Date(2024, time.November, 2, 19, 39, 33, 0, et),
+			expectedTime: time.Date(2024, time.November, 3, 12, 10, 0, 0, et),
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			actualTime, err := NextTickAfter(tc.cronExpr, tc.ref, false)
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			} else if !actualTime.Equal(tc.expectedTime) {
+				t.Errorf("expected next tick to be %v, got %v", tc.expectedTime, actualTime)
+			}
+		})
+	}
+}
