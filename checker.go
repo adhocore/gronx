@@ -70,10 +70,7 @@ func (c *SegmentChecker) isOffsetDue(offset string, val, pos int) (bool, error) 
 		return inStep(val, offset, bounds)
 	}
 	if strings.Contains(offset, "-") {
-		if isWeekDay {
-			offset = strings.Replace(offset, "7-", "0-", 1)
-		}
-		return inRange(val, offset, bounds)
+		return inRange(val, offset, bounds, isWeekDay)
 	}
 
 	nval, err := strconv.Atoi(offset)

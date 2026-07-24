@@ -45,7 +45,7 @@ func inStep(val int, s string, bounds []int) (bool, error) {
 	return inStepRange(val, start, end, step), nil
 }
 
-func inRange(val int, s string, bounds []int) (bool, error) {
+func inRange(val int, s string, bounds []int, isWeekDay bool) (bool, error) {
 	parts := strings.Split(s, "-")
 	start, err := strconv.Atoi(parts[0])
 	if err != nil {
@@ -57,10 +57,34 @@ func inRange(val int, s string, bounds []int) (bool, error) {
 		return false, err
 	}
 
-	if end < start || start < bounds[0] || end > bounds[1] {
+	if start < bounds[0] || start > bounds[1] || end < bounds[0] || end > bounds[1] {
 		return false, fmt.Errorf("range '%s' out of bounds(%d, %d)", s, bounds[0], bounds[1])
 	}
 
+	if isWeekDay {
+		// 7 is an alias for Sunday (0). A leading 7 in a range ("7-y",
+		// y != 7) means Sunday through y, so normalize start 7 -> 0.
+		// A trailing 7 ("x-7") is NOT collapsed: "0-7" legitimately
+		// spans 0..7 = the whole week, while "x-7" (x > 0) wraps from
+		// x through Saturday to Sunday, and "7-7" is Sunday only.
+		// Because val = ref.Weekday() is 0..6, val never equals 7, so
+		// Sunday (val == 0) is matched explicitly whenever the range
+		// ends at 7 (7 ≡ 0).
+		if start == 7 && end != 7 {
+			start = 0
+		}
+		if end == 7 {
+			return (start <= val && val <= end) || val == 0, nil
+		}
+		if end < start {
+			return false, fmt.Errorf("range '%s' out of bounds(%d, %d)", s, bounds[0], bounds[1])
+		}
+		return start <= val && val <= end, nil
+	}
+
+	if end < start {
+		return false, fmt.Errorf("range '%s' out of bounds(%d, %d)", s, bounds[0], bounds[1])
+	}
 	return start <= val && val <= end, nil
 }
 
