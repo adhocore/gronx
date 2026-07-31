@@ -74,7 +74,7 @@ func inRange(val int, s string, bounds []int, isWeekDay bool) (bool, error) {
 			start = 0
 		}
 		if end == 7 {
-			return (start <= val && val <= end) || val == 0, nil
+			return val == 0 || (start <= val && val <= end), nil
 		}
 		if end < start {
 			return false, fmt.Errorf("range '%s' out of bounds(%d, %d)", s, bounds[0], bounds[1])
