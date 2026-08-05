@@ -64,27 +64,23 @@ func inRange(val int, s string, bounds []int, isWeekDay bool) (bool, error) {
 	if isWeekDay {
 		// 7 is an alias for Sunday (0). A leading 7 in a range ("7-y",
 		// y != 7) means Sunday through y, so normalize start 7 -> 0.
-		// A trailing 7 ("x-7") is NOT collapsed: "0-7" legitimately
-		// spans 0..7 = the whole week, while "x-7" (x > 0) wraps from
-		// x through Saturday to Sunday, and "7-7" is Sunday only.
-		// Because val = ref.Weekday() is 0..6, val never equals 7, so
-		// Sunday (val == 0) is matched explicitly whenever the range
-		// ends at 7 (7 ≡ 0).
+		// A trailing 7 ("x-7") is preserved because "0-7" legitimately
+		// represents the whole week, while "x-7" (x > 0) includes Sunday
+		// after Saturday. Since val = ref.Weekday() is always 0..6, when
+		// the range ends at 7 we normalize Sunday (val == 0) to 7 so that
+		// the standard inclusive range check works for all cases.
 		if start == 7 && end != 7 {
 			start = 0
 		}
-		if end == 7 {
-			return val == 0 || (start <= val && val <= end), nil
+		if end == 7 && val == 0 {
+			val = 7
 		}
-		if end < start {
-			return false, fmt.Errorf("range '%s' out of bounds(%d, %d)", s, bounds[0], bounds[1])
-		}
-		return start <= val && val <= end, nil
 	}
 
 	if end < start {
 		return false, fmt.Errorf("range '%s' out of bounds(%d, %d)", s, bounds[0], bounds[1])
 	}
+
 	return start <= val && val <= end, nil
 }
 
