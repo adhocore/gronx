@@ -67,7 +67,7 @@ func (c *SegmentChecker) isOffsetDue(offset string, val, pos int) (bool, error) 
 
 	bounds, isWeekDay := boundsByPos(pos), pos == 5
 	if strings.Contains(offset, "/") {
-		return inStep(val, offset, bounds)
+		return inStep(val, offset, bounds, isWeekDay)
 	}
 	if strings.Contains(offset, "-") {
 		return inRange(val, offset, bounds, isWeekDay)
