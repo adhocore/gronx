@@ -37,6 +37,18 @@ func TestNextTickAfter(t *testing.T) {
 			}
 		})
 
+		t.Run("day of month skips months without that day", func(t *testing.T) {
+			// After Jan 31 the next 31st is Mar 31, not an overflow of February.
+			ref, _ := time.Parse(FullDateFormat, "2021-01-31 00:00:00")
+			next, err := NextTickAfter("0 0 31 * *", ref, false)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if got := next.Format("2006-01-02"); got != "2021-03-31" {
+				t.Errorf("next 31st after 2021-01-31 should be 2021-03-31, got %s", got)
+			}
+		})
+
 		for i, test := range testcases() {
 			t.Run(fmt.Sprintf("next run after incl #%d: %s", i, test.Expr), func(t *testing.T) {
 				ref, _ := time.Parse(FullDateFormat, test.Ref)

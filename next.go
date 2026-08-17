@@ -143,7 +143,11 @@ func isUnreachableYear(year string, ref time.Time, reverse bool) bool {
 	return true
 }
 
-var limit = map[int]int{0: 60, 1: 60, 2: 24, 3: 31, 4: 12, 5: 366, 6: 100}
+// The day-of-month bump advances one day at a time, so its limit must be large
+// enough to cross a short month and still reach a high day like the 31st: two
+// consecutive occurrences of the 31st are up to 61 days apart (e.g. Aug 31 to
+// Oct 31), so 31 was too small and left the search on an overflow date.
+var limit = map[int]int{0: 60, 1: 60, 2: 24, 3: 62, 4: 12, 5: 366, 6: 100}
 
 func bumpUntilDue(c Checker, segment string, pos int, ref time.Time, reverse bool) (time.Time, bool, error) {
 	// <second> <minute> <hour> <day> <month> <weekday> <year>
