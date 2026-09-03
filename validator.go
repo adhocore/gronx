@@ -123,6 +123,11 @@ func isValidMonthDay(val string, last int, ref time.Time) (valid bool, err error
 		return false, err
 	}
 
+	// W never crosses a month boundary, so a month without the Nth day never matches.
+	if nval > last {
+		return false, nil
+	}
+
 	for _, i := range []int{0, -1, 1, -2, 2} {
 		incr := i + nval
 		if incr > 0 && incr <= last {
