@@ -231,3 +231,41 @@ func TestNextTickAfterDSTFallBack(t *testing.T) {
 		})
 	}
 }
+
+func TestNextTickAfterRechecksFieldsAcrossDST(t *testing.T) {
+	for _, test := range []struct {
+		zone     string
+		saturday string
+	}{
+		{"America/Chicago", "2026-03-07"},
+		{"America/Chicago", "2026-10-31"},
+		{"America/New_York", "2026-03-07"},
+		{"America/New_York", "2026-10-31"},
+		{"Europe/Amsterdam", "2026-03-28"},
+		{"Europe/Amsterdam", "2026-10-24"},
+	} {
+		t.Run(test.zone+"/"+test.saturday, func(t *testing.T) {
+			location, err := time.LoadLocation(test.zone)
+			if err != nil {
+				t.Fatal(err)
+			}
+			start, err := time.ParseInLocation(FullDateFormat, test.saturday+" 02:00:00", location)
+			if err != nil {
+				t.Fatal(err)
+			}
+			const expr = "0 2 * * 6"
+			next, err := NextTickAfter(expr, start, false)
+			if err != nil {
+				t.Fatal(err)
+			}
+			expected := start.AddDate(0, 0, 7)
+			if !next.Equal(expected) {
+				t.Fatalf("expected %s, got %s", expected, next)
+			}
+			due, err := New().IsDue(expr, next)
+			if err != nil || !due {
+				t.Fatalf("next tick does not satisfy the expression: %s, %v", next, err)
+			}
+		})
+	}
+}

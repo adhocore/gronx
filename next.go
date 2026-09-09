@@ -164,7 +164,8 @@ func bumpUntilDue(c Checker, segment string, pos int, ref time.Time, reverse boo
 		}
 		iter--
 	}
-	return ref, false, errors.New("tried so hard")
+	// The search advanced even if this field is not due; recheck earlier fields.
+	return ref, true, errors.New("tried so hard")
 }
 
 func bump(ref time.Time, pos int) time.Time {
