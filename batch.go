@@ -36,15 +36,8 @@ func (g *Gronx) BatchDue(exprs []string, ref ...time.Time) []Expr {
 			continue
 		}
 
-		due := true
-		for pos, seg := range segs {
-			if seg != "*" && seg != "?" {
-				if due, batch[i].Err = g.C.CheckDue(seg, pos); !due || batch[i].Err != nil {
-					break
-				}
-			}
-		}
-		batch[i].Due = due
+		// Use SegmentsDue so day-of-month / weekday OR semantics match IsDue.
+		batch[i].Due, batch[i].Err = g.SegmentsDue(segs)
 		cache[key] = batch[i]
 	}
 	return batch

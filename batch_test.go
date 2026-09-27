@@ -38,3 +38,27 @@ func TestBatch(t *testing.T) {
 		}
 	})
 }
+
+func TestBatchDueMatchesIsDueWhenDomAndDowSet(t *testing.T) {
+	g := New()
+	expr := "0 0 1 * 1"
+	refs := []time.Time{
+		time.Date(2026, 3, 16, 0, 0, 0, 0, time.UTC), // Monday, not 1st
+		time.Date(2026, 4, 1, 0, 0, 0, 0, time.UTC),  // 1st, Wednesday
+		time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC),  // 1st and Monday
+	}
+	for _, ref := range refs {
+		due, err := g.IsDue(expr, ref)
+		if err != nil {
+			t.Fatalf("IsDue(%v): %v", ref, err)
+		}
+		b := g.BatchDue([]string{expr}, ref)[0]
+		if b.Err != nil {
+			t.Fatalf("BatchDue(%v): %v", ref, b.Err)
+		}
+		if b.Due != due {
+			t.Fatalf("BatchDue/IsDue mismatch at %s: BatchDue=%v IsDue=%v",
+				ref.Format("2006-01-02"), b.Due, due)
+		}
+	}
+}
