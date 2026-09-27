@@ -38,11 +38,10 @@ func bumpReverse(ref time.Time, pos int) time.Time {
 	case 0:
 		ref = ref.Add(-time.Second)
 	case 1:
-		minTime := ref.Add(-time.Minute)
-		ref = time.Date(minTime.Year(), minTime.Month(), minTime.Day(), minTime.Hour(), minTime.Minute(), 59, 0, loc)
+		// Subtract elapsed time to avoid reconstructing an ambiguous local time.
+		ref = ref.Add(-time.Duration(ref.Second()+1) * time.Second)
 	case 2:
-		hTime := ref.Add(-time.Hour)
-		ref = time.Date(hTime.Year(), hTime.Month(), hTime.Day(), hTime.Hour(), 59, 59, 0, loc)
+		ref = ref.Add(-time.Duration(ref.Minute())*time.Minute - time.Duration(ref.Second()+1)*time.Second)
 	case 3, 5:
 		dTime := ref.AddDate(0, 0, -1)
 		ref = time.Date(dTime.Year(), dTime.Month(), dTime.Day(), 23, 59, 59, 0, loc)

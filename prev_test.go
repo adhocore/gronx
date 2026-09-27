@@ -79,3 +79,97 @@ func TestPrevTickBefore(t *testing.T) {
 		}
 	})
 }
+
+func TestPrevTickBeforeDST(t *testing.T) {
+	tests := []struct {
+		name string
+		zone string
+		expr string
+		ref  string
+		want string
+	}{
+		{
+			name: "hour search keeps the second New York occurrence",
+			zone: "America/New_York",
+			expr: "20 1 * * *",
+			ref:  "2024-11-03T02:10:00-05:00",
+			want: "2024-11-03T01:20:00-05:00",
+		},
+		{
+			name: "minute search keeps the second New York occurrence",
+			zone: "America/New_York",
+			expr: "20 * * * *",
+			ref:  "2024-11-03T01:40:00-05:00",
+			want: "2024-11-03T01:20:00-05:00",
+		},
+		{
+			name: "hour search crosses the repeated Paris hour",
+			zone: "Europe/Paris",
+			expr: "0 0 * * *",
+			ref:  "2024-10-27T03:10:00+01:00",
+			want: "2024-10-27T00:00:00+02:00",
+		},
+		{
+			name: "minute search keeps the first Paris occurrence",
+			zone: "Europe/Paris",
+			expr: "20 * * * *",
+			ref:  "2024-10-27T02:40:00+02:00",
+			want: "2024-10-27T02:20:00+02:00",
+		},
+		{
+			name: "minute search crosses the New York rollback",
+			zone: "America/New_York",
+			expr: "50 * * * *",
+			ref:  "2024-11-03T01:10:00-05:00",
+			want: "2024-11-03T01:50:00-04:00",
+		},
+		{
+			name: "hour search keeps the second Lord Howe occurrence",
+			zone: "Australia/Lord_Howe",
+			expr: "45 1 * * *",
+			ref:  "2024-04-07T02:10:00+10:30",
+			want: "2024-04-07T01:45:00+10:30",
+		},
+		{
+			name: "minute search crosses the New York spring gap",
+			zone: "America/New_York",
+			expr: "30 * * * *",
+			ref:  "2024-03-10T03:10:00-04:00",
+			want: "2024-03-10T01:30:00-05:00",
+		},
+		{
+			name: "hour search respects a fractional UTC offset",
+			zone: "Asia/Kolkata",
+			expr: "20 1 * * *",
+			ref:  "2024-11-03T02:10:00+05:30",
+			want: "2024-11-03T01:20:00+05:30",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			loc, err := time.LoadLocation(tc.zone)
+			if err != nil {
+				t.Fatal(err)
+			}
+			ref, err := time.Parse(time.RFC3339, tc.ref)
+			if err != nil {
+				t.Fatal(err)
+			}
+			want, err := time.Parse(time.RFC3339, tc.want)
+			if err != nil {
+				t.Fatal(err)
+			}
+			got, err := PrevTickBefore(tc.expr, ref.In(loc), false)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !got.Equal(want) {
+				t.Errorf("expected %v, got %v", want, got)
+			}
+			if got.Location() != loc {
+				t.Errorf("expected location %v, got %v", loc, got.Location())
+			}
+		})
+	}
+}
