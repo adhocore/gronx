@@ -60,6 +60,12 @@ func TestIsValid(t *testing.T) {
 		if !gron.IsValid("* 00 * * *") {
 			t.Errorf("expected true, got false")
 		}
+		if !gron.IsValid("* * * * 7#1") {
+			t.Errorf("expected true, got false")
+		}
+		if !gron.IsValid("* * 31W * *") {
+			t.Errorf("expected true, got false")
+		}
 		if expr := "* * * * *"; IsValid(expr) != gron.IsValid(expr) {
 			t.Error("IsValid func and method must return same")
 		}
@@ -82,6 +88,18 @@ func TestIsValid(t *testing.T) {
 			t.Errorf("expected false, got true")
 		}
 		if gron.IsValid("* * * * 8") {
+			t.Errorf("expected false, got true")
+		}
+		if gron.IsValid("* * * * 8#1") {
+			t.Errorf("expected false, got true")
+		}
+		if gron.IsValid("* * * * 8L") {
+			t.Errorf("expected false, got true")
+		}
+		if gron.IsValid("* * * * 1#6") {
+			t.Errorf("expected false, got true")
+		}
+		if gron.IsValid("* * 32W * *") {
 			t.Errorf("expected false, got true")
 		}
 
@@ -321,6 +339,10 @@ func errcases() []Case {
 		{"* * * * * ZL", "", false, ""},
 		{"* * * * * Z#", "", false, ""},
 		{"* * * * * 1#Z", "", false, ""},
+		{"* * * * 8#1", "2026-09-28 12:00:00", false, ""},
+		{"* * * * 8L", "2026-09-28 12:00:00", false, ""},
+		{"* * * * 1#6", "2026-09-28 12:00:00", false, ""},
+		{"* * 32W * *", "2026-09-28 12:00:00", false, ""},
 		{"* * W * L", "", false, ""},
 		{"* * 15 * 1#Z", "", false, ""},
 	}

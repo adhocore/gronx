@@ -124,6 +124,9 @@ func isValidMonthDay(val string, last int, ref time.Time) (valid bool, err error
 	}
 
 	// W never crosses a month boundary, so a month without the Nth day never matches.
+	if nval < 1 || nval > 31 {
+		return false, fmt.Errorf("month day '%s' out of bounds(1, 31)", val)
+	}
 	if nval > last {
 		return false, nil
 	}
@@ -152,6 +155,9 @@ func isValidWeekDay(val string, last int, ref time.Time) (bool, error) {
 		if err != nil {
 			return false, err
 		}
+		if nval < 0 || nval > 7 {
+			return false, fmt.Errorf("weekday '%s' out of bounds(0, 7)", val)
+		}
 
 		for i := 0; i < 7; i++ {
 			day := last - i
@@ -178,7 +184,10 @@ func isValidWeekDay(val string, last int, ref time.Time) (bool, error) {
 		return false, err
 	}
 
-	if day < 0 || day > 7 || nth < 1 || nth > 5 || int(ref.Weekday()) != day {
+	if day < 0 || day > 7 || nth < 1 || nth > 5 {
+		return false, fmt.Errorf("weekday '%s' out of bounds", val)
+	}
+	if int(ref.Weekday()) != day {
 		return false, nil
 	}
 
