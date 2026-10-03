@@ -62,3 +62,16 @@ func TestBatchDueMatchesIsDueWhenDomAndDowSet(t *testing.T) {
 		}
 	}
 }
+
+func TestBatchDueMinutePrecision(t *testing.T) {
+	g := New()
+	expr := "*/10 8-12 * * 1-5"
+	ref, _ := time.Parse(FullDateFormat, "2026-10-01 12:10:15")
+	b := g.BatchDue([]string{expr}, ref)[0]
+	if b.Err != nil {
+		t.Fatalf("unexpected error: %v", b.Err)
+	}
+	if !b.Due {
+		t.Fatalf("expected Due=true for %s at %v", expr, ref)
+	}
+}

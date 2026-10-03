@@ -36,8 +36,14 @@ func (g *Gronx) BatchDue(exprs []string, ref ...time.Time) []Expr {
 			continue
 		}
 
+		dueSegs := segs
+		if isMinutePrecision(exprs[i]) {
+			dueSegs = append([]string{}, segs...)
+			dueSegs[0] = "*"
+		}
+
 		// Use SegmentsDue so day-of-month / weekday OR semantics match IsDue.
-		batch[i].Due, batch[i].Err = g.SegmentsDue(segs)
+		batch[i].Due, batch[i].Err = g.SegmentsDue(dueSegs)
 		cache[key] = batch[i]
 	}
 	return batch

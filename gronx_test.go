@@ -172,6 +172,40 @@ func TestIsDue(t *testing.T) {
 		}
 	})
 
+	t.Run("minute precision", func(t *testing.T) {
+		expr := "*/10 8-12 * * 1-5"
+		// 2026-10-01 is a Thursday
+		ref, _ := time.Parse(FullDateFormat, "2026-10-01 12:10:05")
+		due, _ := gron.IsDue(expr, ref)
+		if !due {
+			t.Errorf("%s should be due on %s", expr, ref)
+		}
+
+		ref2, _ := time.Parse(FullDateFormat, "2026-10-01 12:10:30")
+		due, _ = gron.IsDue(expr, ref2)
+		if !due {
+			t.Errorf("%s should be due on %s", expr, ref2)
+		}
+
+		refNotDue, _ := time.Parse(FullDateFormat, "2026-10-01 12:11:05")
+		due, _ = gron.IsDue(expr, refNotDue)
+		if due {
+			t.Errorf("%s should not be due on %s", expr, refNotDue)
+		}
+
+		// When seconds are explicitly specified as 0, second precision applies
+		exprSec := "0 */10 8-12 * * 1-5"
+		due, _ = gron.IsDue(exprSec, ref)
+		if due {
+			t.Errorf("%s should not be due on %s with non-zero second", exprSec, ref)
+		}
+		refZeroSec, _ := time.Parse(FullDateFormat, "2026-10-01 12:10:00")
+		due, _ = gron.IsDue(exprSec, refZeroSec)
+		if !due {
+			t.Errorf("%s should be due on %s", exprSec, refZeroSec)
+		}
+	})
+
 	for i, test := range testcases() {
 		t.Run(fmt.Sprintf("is due #%d=%s", i, test.Expr), func(t *testing.T) {
 			actual, _ := test.run(t, gron)

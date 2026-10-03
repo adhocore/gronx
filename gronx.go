@@ -85,7 +85,17 @@ func (g *Gronx) IsDue(expr string, ref ...time.Time) (bool, error) {
 		return false, err
 	}
 
+	if isMinutePrecision(expr) {
+		segs[0] = "*"
+	}
+
 	return g.SegmentsDue(segs)
+}
+
+func isMinutePrecision(expr string) bool {
+	segs := normalize(expr)
+	slen := len(segs)
+	return slen == 5 || (slen == 6 && yearRe.MatchString(segs[5]))
 }
 
 func (g *Gronx) isDue(expr string, ref time.Time) bool {
