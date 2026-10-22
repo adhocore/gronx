@@ -93,9 +93,9 @@ func (g *Gronx) isDue(expr string, ref time.Time) bool {
 	return err == nil && due
 }
 
-// Segments splits expr into array array of cron parts.
-// If expression contains 5 parts or 6th part is year like, it prepends a second.
-// It returns array or error.
+// Segments splits expr into an array of cron parts.
+// If expression contains 5 parts or the 6th part is year-like, it prepends a second.
+// It returns an error for an invalid segment count or expression syntax.
 func Segments(expr string) ([]string, error) {
 	segs := normalize(expr)
 	slen := len(segs)
@@ -107,6 +107,9 @@ func Segments(expr string) ([]string, error) {
 	prepend := slen == 5 || (slen == 6 && yearRe.MatchString(segs[5]))
 	if prepend {
 		segs = append([]string{"0"}, segs...)
+	}
+	if !isSyntaxValid(segs) {
+		return []string{}, errors.New("invalid expression syntax")
 	}
 
 	return segs, nil
@@ -174,12 +177,7 @@ func IsValid(expr string) bool {
 		return false
 	}
 
-	// First check syntax without time dependency
-	if !isSyntaxValid(segs) {
-		return false
-	}
-
-	// Then check with time dependency
+	// Check each segment against the reference time to validate its values.
 	for pos, seg := range segs {
 		if _, err := checker.CheckDue(seg, pos); err != nil {
 			return false
@@ -192,7 +190,7 @@ func IsValid(expr string) bool {
 // isSyntaxValid checks if the cron segments are syntactically valid without time dependency.
 // It returns bool.
 func isSyntaxValid(segs []string) bool {
-	for _, seg := range segs {
+	for pos, seg := range segs {
 		// Check for empty segments
 		if seg == "" {
 			return false
@@ -206,6 +204,10 @@ func isSyntaxValid(segs []string) bool {
 				return false
 			}
 
+			if !isModifierSyntaxValid(part, pos) {
+				return false
+			}
+
 			// Check for invalid characters
 			if strings.ContainsAny(part, "*/") {
 				// If contains /, must have a number after it
@@ -216,6 +218,43 @@ func isSyntaxValid(segs []string) bool {
 					}
 				}
 			}
+		}
+	}
+	return true
+}
+
+func isModifierSyntaxValid(part string, pos int) bool {
+	if !strings.ContainsAny(part, "LW#") {
+		return true
+	}
+
+	switch pos {
+	case 3:
+		return part == "L" ||
+			(strings.Count(part, "W") == 1 && strings.HasSuffix(part, "W") &&
+				isDigits(part[:len(part)-1]))
+	case 5:
+		if strings.Count(part, "L") == 1 && strings.HasSuffix(part, "L") &&
+			isDigits(part[:len(part)-1]) {
+			return true
+		}
+		if strings.Count(part, "#") != 1 {
+			return false
+		}
+		parts := strings.SplitN(part, "#", 2)
+		return isDigits(parts[0]) && isDigits(parts[1])
+	default:
+		return false
+	}
+}
+
+func isDigits(value string) bool {
+	if value == "" {
+		return false
+	}
+	for i := 0; i < len(value); i++ {
+		if value[i] < '0' || value[i] > '9' {
+			return false
 		}
 	}
 	return true
