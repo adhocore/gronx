@@ -337,10 +337,7 @@ func (t *Tasker) runTasks(tasks map[string]TaskFunc) {
 		}
 
 		t.wg.Add(1)
-		rc := make(chan result)
-
-		go t.doRun(ctx, ref, task, rc)
-		go t.doOut(rc)
+		go t.doRun(ctx, ref, task)
 	}
 }
 
@@ -349,8 +346,18 @@ func (t *Tasker) canRun(ref string) bool {
 	return !ok || atomic.CompareAndSwapUint32(lock, 0, 1)
 }
 
-func (t *Tasker) doRun(ctx context.Context, ref string, task TaskFunc, rc chan result) {
+func (t *Tasker) doRun(ctx context.Context, ref string, task TaskFunc) {
 	defer t.wg.Done()
+	var res result
+	completed := false
+	defer func() {
+		if completed {
+			t.doOut(res)
+		}
+	}()
+	if lock, ok := t.mutex[ref]; ok {
+		defer atomic.StoreUint32(lock, 0)
+	}
 	if t.abort || t.timeout {
 		return
 	}
@@ -360,15 +367,11 @@ func (t *Tasker) doRun(ctx context.Context, ref string, task TaskFunc, rc chan r
 	}
 
 	code, err := task(ctx)
-	if lock, ok := t.mutex[ref]; ok {
-		atomic.StoreUint32(lock, 0)
-	}
-
-	rc <- result{err, ref, code}
+	res = result{err, ref, code}
+	completed = true
 }
 
-func (t *Tasker) doOut(rc chan result) {
-	res := <-rc
+func (t *Tasker) doOut(res result) {
 	if res.err != nil {
 		t.Log.Printf("[tasker] task %s errored %v", res.ref, res.err)
 	}
