@@ -68,7 +68,7 @@ over:
 			// From here we process the weekday segment in case it is neither * nor ?
 
 			monthDaySeg := segments[3]
-			intersect := strings.Index(seg, "*/") == 0 || strings.Index(monthDaySeg, "*") == 0 || monthDaySeg == "?"
+			intersect := strings.Index(seg, "*/") == 0 || strings.Index(monthDaySeg, "*") == 0 || monthDayUnrestricted(monthDaySeg)
 
 			nextForWeekDay := next
 			nextForWeekDay, bumped, err = bumpUntilDue(gron.C, seg, pos, nextForWeekDay, reverse)
@@ -81,6 +81,13 @@ over:
 				continue
 			}
 			// Weekday was bumped, so we need to check for month day
+
+			if monthDayUnrestricted(monthDaySeg) {
+				// Day of month matches every date, so this is not really a union
+				// case: the weekday is already the only restriction that can fail.
+				next = nextForWeekDay
+				goto over
+			}
 
 			if intersect {
 				// We need intersection so we keep bumped weekday and go over

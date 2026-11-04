@@ -138,3 +138,140 @@ func TestDOWRangeTrailingSeven(t *testing.T) {
 		}
 	})
 }
+
+// TestFullDayOfMonthRangeKeepsWeekdayRestriction regressions the bug where a
+// day-of-month segment covering the whole field ("1-31", or the same days spelled
+// out one by one) disabled the weekday segment. Such a segment matches every
+// date, so it is equivalent to "*" and cannot make the union rule apply; only the
+// weekday is left to restrict the match. Before the fix "0 0 1-31 * 1" ran on
+// every day of the year instead of Mondays.
+func TestFullDayOfMonthRangeKeepsWeekdayRestriction(t *testing.T) {
+	gron := New()
+
+	// 2011-06-13 is a Monday, 2011-06-15 a Wednesday.
+	wed := time.Date(2011, 6, 15, 0, 0, 0, 0, time.UTC)
+	mon := time.Date(2011, 6, 13, 0, 0, 0, 0, time.UTC)
+	thu := time.Date(2011, 6, 16, 0, 0, 0, 0, time.UTC)
+
+	t.Run("IsDue honours the weekday", func(t *testing.T) {
+		for _, expr := range []string{"0 0 1-31 * 1", "0 0 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31 * 1"} {
+			if due, err := gron.IsDue(expr, thu); err != nil || due {
+				t.Errorf("IsDue(%q, 2011-06-16 Thu) = %v, %v; want false, nil", expr, due, err)
+			}
+		}
+		want := time.Date(2011, 6, 13, 0, 0, 0, 0, time.UTC) // Monday
+		if due, err := gron.IsDue("0 0 1-31 * 1", want); err != nil || !due {
+			t.Errorf("IsDue('0 0 1-31 * 1', 2011-06-13 Mon) = %v, %v; want true, nil", due, err)
+		}
+	})
+
+	t.Run("full range equals star", func(t *testing.T) {
+		for w := time.Sunday; w <= time.Saturday; w++ {
+			ref := time.Date(2011, 6, 12+int(w), 0, 0, 0, 0, time.UTC) // Sun 12th .. Sat 18th
+			rangeDue, err := gron.IsDue("0 0 1-31 * 1", ref)
+			if err != nil {
+				t.Fatalf("IsDue range: %v", err)
+			}
+			starDue, err := gron.IsDue("0 0 * * 1", ref)
+			if err != nil {
+				t.Fatalf("IsDue star: %v", err)
+			}
+			if rangeDue != starDue {
+				t.Errorf("on %s IsDue('0 0 1-31 * 1') = %v but IsDue('0 0 * * 1') = %v; a full day-of-month range matches every date and must agree with '*'",
+					ref.Format("2006-01-02"), rangeDue, starDue)
+			}
+		}
+	})
+
+	// A stepped day of month is still a restriction: "*/2" is the odd days, so the
+	// weekday and the step intersect. Test case #73 of the next-run table pins this
+	// for "3-59/15 6-12 */15 1 2-5" and it must not change with the range fix.
+	t.Run("stepped day of month keeps intersecting with the weekday", func(t *testing.T) {
+		if due, err := gron.IsDue("0 0 */2 * 1", mon); err != nil || !due {
+			t.Errorf("IsDue('0 0 */2 * 1', 2011-06-13 Mon, odd day) = %v, %v; want true, nil", due, err)
+		}
+		evenMon := time.Date(2011, 6, 20, 0, 0, 0, 0, time.UTC) // Monday, even day
+		if due, err := gron.IsDue("0 0 */2 * 1", evenMon); err != nil || due {
+			t.Errorf("IsDue('0 0 */2 * 1', 2011-06-20 Mon, even day) = %v, %v; want false, nil", due, err)
+		}
+		next, err := NextTickAfter("0 0 */2 * 1", wed, false)
+		if err != nil {
+			t.Fatalf("NextTickAfter err: %v", err)
+		}
+		if want := time.Date(2011, 6, 27, 0, 0, 0, 0, time.UTC); !next.Equal(want) {
+			t.Errorf("NextTickAfter('0 0 */2 * 1', 2011-06-15 Wed) = %s, want %s",
+				next.Format(FullDateFormat), want.Format(FullDateFormat))
+		}
+	})
+
+	t.Run("NextTickAfter picks the next Monday", func(t *testing.T) {
+		next, err := NextTickAfter("0 0 1-31 * 1", wed, false)
+		if err != nil {
+			t.Fatalf("NextTickAfter err: %v", err)
+		}
+		if want := time.Date(2011, 6, 20, 0, 0, 0, 0, time.UTC); !next.Equal(want) {
+			t.Errorf("NextTickAfter('0 0 1-31 * 1', 2011-06-15 Wed) = %s, want %s",
+				next.Format(FullDateFormat), want.Format(FullDateFormat))
+		}
+
+		// Consecutive ticks must be a week apart, not a day.
+		second, err := NextTickAfter("0 0 1-31 * 1", next, false)
+		if err != nil {
+			t.Fatalf("NextTickAfter err: %v", err)
+		}
+		if got := int(second.Sub(next).Hours() / 24); got != 7 {
+			t.Errorf("consecutive ticks are %d days apart, want 7", got)
+		}
+
+		sunday, err := NextTickAfter("0 0 1-31 * 0", wed, false)
+		if err != nil {
+			t.Fatalf("NextTickAfter err: %v", err)
+		}
+		if want := time.Date(2011, 6, 19, 0, 0, 0, 0, time.UTC); !sunday.Equal(want) {
+			t.Errorf("NextTickAfter('0 0 1-31 * 0', 2011-06-15 Wed) = %s, want %s",
+				sunday.Format(FullDateFormat), want.Format(FullDateFormat))
+		}
+	})
+
+	t.Run("PrevTickBefore picks the previous Monday", func(t *testing.T) {
+		prev, err := PrevTickBefore("0 0 1-31 * 1", wed, false)
+		if err != nil {
+			t.Fatalf("PrevTickBefore err: %v", err)
+		}
+		if !prev.Equal(mon) {
+			t.Errorf("PrevTickBefore('0 0 1-31 * 1', 2011-06-15 Wed) = %s, want %s",
+				prev.Format(FullDateFormat), mon.Format(FullDateFormat))
+		}
+	})
+
+	t.Run("BatchDue agrees with IsDue", func(t *testing.T) {
+		for _, ref := range []time.Time{wed, thu, mon} {
+			want, err := gron.IsDue("0 0 1-31 * 1", ref)
+			if err != nil {
+				t.Fatalf("IsDue: %v", err)
+			}
+			batch := gron.BatchDue([]string{"0 0 1-31 * 1"}, ref)[0]
+			if batch.Err != nil {
+				t.Fatalf("BatchDue: %v", batch.Err)
+			}
+			if batch.Due != want {
+				t.Errorf("BatchDue = %v but IsDue = %v at %s", batch.Due, want, ref.Format("2006-01-02"))
+			}
+		}
+	})
+
+	t.Run("a range short of the whole field still restricts", func(t *testing.T) {
+		// 1-29 leaves the 30th and 31st out, so it still constrains the match
+		// and must not be treated as unrestricted. 2011-07-31 is a Sunday.
+		last := time.Date(2011, 7, 31, 0, 0, 0, 0, time.UTC)
+		if due, err := gron.IsDue("0 0 1-29 * 1", last); err != nil || due {
+			t.Errorf("IsDue('0 0 1-29 * 1', 2011-07-31) = %v, %v; want false, nil", due, err)
+		}
+		if due, err := gron.IsDue("0 0 1-31 * 0", last); err != nil || !due {
+			t.Errorf("IsDue('0 0 1-31 * 0', 2011-07-31) = %v, %v; want true, nil", due, err)
+		}
+		if due, err := gron.IsDue("0 0 */1 * 1", time.Date(2011, 7, 4, 0, 0, 0, 0, time.UTC)); err != nil || !due {
+			t.Errorf("IsDue('0 0 */1 * 1', 2011-07-04 Mon) = %v, %v; want true, nil", due, err)
+		}
+	})
+}

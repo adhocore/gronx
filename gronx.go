@@ -3,6 +3,7 @@ package gronx
 import (
 	"errors"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -134,7 +135,7 @@ func (g *Gronx) SegmentsDue(segs []string) (bool, error) {
 
 		if isWeekday {
 			monthDaySeg := segs[3]
-			intersect := strings.Index(seg, "*/") == 0 || strings.Index(monthDaySeg, "*") == 0 || monthDaySeg == "?"
+			intersect := strings.Index(seg, "*/") == 0 || strings.Index(monthDaySeg, "*") == 0 || monthDayUnrestricted(monthDaySeg)
 
 			if !intersect {
 				due, err := g.C.CheckDue(seg, pos)
@@ -257,5 +258,55 @@ func isDigits(value string) bool {
 			return false
 		}
 	}
+	return true
+}
+
+// monthDayUnrestricted tells whether the day-of-month segment matches every
+// date. "*" and "?" clearly do, but so does a range covering the whole field
+// ("1-31") or a list spelling out every day. Such a segment restricts nothing,
+// so the union rule for restricted day-of-month and weekday segments does not
+// apply to it: the weekday alone decides.
+func monthDayUnrestricted(seg string) bool {
+	if seg == "*" || seg == "?" {
+		return true
+	}
+	if strings.Contains(seg, "*") || strings.ContainsAny(seg, "LW#?") {
+		return false
+	}
+
+	covered := map[int]bool{}
+	for _, offset := range strings.Split(seg, ",") {
+		// A step ("1-31/2", "*/2") skips days, so it never covers all of them.
+		if strings.Contains(offset, "/") {
+			return false
+		}
+
+		parts := strings.Split(offset, "-")
+		if len(parts) > 2 {
+			return false
+		}
+
+		start, end := 0, 0
+		if start, _ = strconv.Atoi(parts[0]); !isDigits(parts[0]) {
+			return false
+		}
+		end = start
+		if len(parts) == 2 {
+			if end, _ = strconv.Atoi(parts[1]); !isDigits(parts[1]) {
+				return false
+			}
+		}
+
+		for i := start; i <= end; i++ {
+			covered[i] = true
+		}
+	}
+
+	for day := 1; day <= 31; day++ {
+		if !covered[day] {
+			return false
+		}
+	}
+
 	return true
 }
