@@ -44,11 +44,11 @@ func bumpReverse(ref time.Time, pos int) time.Time {
 		hTime := ref.Add(-time.Hour)
 		ref = time.Date(hTime.Year(), hTime.Month(), hTime.Day(), hTime.Hour(), 59, 59, 0, loc)
 	case 3, 5:
-		dTime := ref.AddDate(0, 0, -1)
-		ref = time.Date(dTime.Year(), dTime.Month(), dTime.Day(), 23, 59, 59, 0, loc)
+		// the last second of the day before; unlike AddDate + time.Date this stays right when
+		// midnight is skipped or 23:00-24:00 repeats (zones that change clocks at midnight)
+		ref = startOfDay(ref.Year(), ref.Month(), ref.Day(), loc).Add(-time.Second)
 	case 4:
-		ref = time.Date(ref.Year(), ref.Month(), 1, 0, 0, 0, 0, loc)
-		ref = ref.Add(-time.Second)
+		ref = startOfDay(ref.Year(), ref.Month(), 1, loc).Add(-time.Second)
 	case 6:
 		yTime := ref.AddDate(-1, 0, 0)
 		ref = time.Date(yTime.Year(), 12, 31, 23, 59, 59, 0, loc)

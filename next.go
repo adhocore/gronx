@@ -189,14 +189,29 @@ func bump(ref time.Time, pos int) time.Time {
 		}
 		ref = next
 	case 3, 5:
-		dTime := ref.AddDate(0, 0, 1)
-		ref = time.Date(dTime.Year(), dTime.Month(), dTime.Day(), 0, 0, 0, 0, loc)
+		ref = startOfDay(ref.Year(), ref.Month(), ref.Day()+1, loc)
 	case 4:
-		ref = time.Date(ref.Year(), ref.Month(), 1, 0, 0, 0, 0, loc)
-		ref = ref.AddDate(0, 1, 0)
+		ref = startOfDay(ref.Year(), ref.Month()+1, 1, loc)
 	case 6:
 		yTime := ref.AddDate(1, 0, 0)
 		ref = time.Date(yTime.Year(), 1, 1, 0, 0, 0, 0, loc)
+	}
+	return ref
+}
+
+// startOfDay gives the first instant of the given day (day and month may
+// overflow, as with time.Date). In zones that change clocks at midnight (e.g.
+// America/Santiago, America/Asuncion) midnight can be skipped: time.Date and
+// AddDate then give 23:00 of the day before, and a search that bumps to the
+// next day never gets past it. Dates are worked out at noon, and a skipped
+// midnight is moved forward by the offset change to the first real instant.
+func startOfDay(year int, month time.Month, day int, loc *time.Location) time.Time {
+	noon := time.Date(year, month, day, 12, 0, 0, 0, loc)
+	ref := time.Date(noon.Year(), noon.Month(), noon.Day(), 0, 0, 0, 0, loc)
+	if ref.Day() != noon.Day() {
+		_, before := ref.Zone()
+		_, after := noon.Zone()
+		ref = ref.Add(time.Duration(after-before) * time.Second)
 	}
 	return ref
 }

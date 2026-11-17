@@ -269,3 +269,35 @@ func TestNextTickAfterRechecksFieldsAcrossDST(t *testing.T) {
 		})
 	}
 }
+
+// Some zones change clocks at midnight, so a day can start at 01:00. The day
+// and month steps used to land on 23:00 of the day before and never get past it.
+func TestNextTickAfterSkippedMidnight(t *testing.T) {
+	for _, test := range []struct {
+		zone, expr, ref, expected string
+	}{
+		// 2022-09-11 00:00 does not exist in Santiago (clocks go to 01:00)
+		{"America/Santiago", "0 2 12 * *", "2022-09-10 14:50:00", "2022-09-12 02:00:00"},
+		{"America/Santiago", "0 2 * * 1", "2022-09-10 14:50:00", "2022-09-12 02:00:00"},
+		{"America/Santiago", "0 2 11 * *", "2022-09-10 14:50:00", "2022-09-11 02:00:00"},
+		// 2023-10-01 00:00 does not exist in Asuncion
+		{"America/Asuncion", "0 2 1 * *", "2023-09-15 14:50:00", "2023-10-01 02:00:00"},
+		{"America/Asuncion", "0 2 * 10 *", "2023-09-15 14:50:00", "2023-10-01 02:00:00"},
+	} {
+		t.Run(test.zone+" "+test.expr, func(t *testing.T) {
+			location, err := time.LoadLocation(test.zone)
+			if err != nil {
+				t.Fatal(err)
+			}
+			ref, _ := time.ParseInLocation(FullDateFormat, test.ref, location)
+			expected, _ := time.ParseInLocation(FullDateFormat, test.expected, location)
+			next, err := NextTickAfter(test.expr, ref, false)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if !next.Equal(expected) {
+				t.Fatalf("expected %s, got %s", expected, next)
+			}
+		})
+	}
+}
