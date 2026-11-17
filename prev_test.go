@@ -79,3 +79,31 @@ func TestPrevTickBefore(t *testing.T) {
 		}
 	})
 }
+
+// Some zones change clocks at midnight, so a day can start at 01:00. Stepping back
+// a day or a month used to skip that day, or the last hour of the day before.
+func TestPrevTickBeforeMidnightDST(t *testing.T) {
+	for _, test := range []struct {
+		zone, expr, ref string
+		expected        time.Time
+	}{
+		// 2023-10-01 00:00 does not exist in Asuncion (clocks go to 01:00)
+		{"America/Asuncion", "0 12 1 * *", "2023-10-02 00:30:00", time.Date(2023, 10, 1, 15, 0, 0, 0, time.UTC)},
+		{"America/Asuncion", "30 23 * 9 *", "2023-10-15 12:00:00", time.Date(2023, 10, 1, 3, 30, 0, 0, time.UTC)},
+	} {
+		t.Run(test.zone+" "+test.expr, func(t *testing.T) {
+			location, err := time.LoadLocation(test.zone)
+			if err != nil {
+				t.Fatal(err)
+			}
+			ref, _ := time.ParseInLocation(FullDateFormat, test.ref, location)
+			prev, err := PrevTickBefore(test.expr, ref, false)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if !prev.Equal(test.expected) {
+				t.Fatalf("expected %s, got %s", test.expected.In(location), prev)
+			}
+		})
+	}
+}
