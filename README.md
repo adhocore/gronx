@@ -327,6 +327,20 @@ Following tags are available and they are converted to real cron expressions bef
 - *@always* - every minute
 - *@everysecond* - every second
 
+The following tags use steps of two in the corresponding cron field:
+
+| Tag | Cron expression | Schedule |
+| --- | --- | --- |
+| `@everyothersecond` | `*/2 * * * * *` | Seconds 0, 2, ..., 58 |
+| `@everyotherminute` | `*/2 * * * *` | Minutes 0, 2, ..., 58 |
+| `@everyotherhour` | `0 */2 * * *` | Minute 0 of hours 0, 2, ..., 22 |
+| `@everyotherday` | `0 0 */2 * *` | 00:00 on days 1, 3, 5, ... of each month |
+| `@everyothermonth` | `0 0 1 */2 *` | 00:00 on the first day of January, March, May, July, September and November |
+| `@everyotheryear` | `0 0 0 1 1 * */2` | 00:00:00 on January 1 in even-numbered years |
+
+Steps restart with each cron field. For example, `@everyotherday` is due on
+both January 31 and February 1. Tag names are case-insensitive.
+
 > For BC reasons, `@always` still means every minute for now, in future release it may mean every seconds instead.
 
 ```go
