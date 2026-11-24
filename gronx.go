@@ -30,7 +30,9 @@ var expressions = map[string]string{
 }
 
 // AddTag adds a new custom tag representing given expr
+// Tag names are case-insensitive.
 func AddTag(tag, expr string) error {
+	tag = strings.ToLower(tag)
 	_, ok := expressions[tag]
 	if ok {
 		return errors.New("conflict tag")
