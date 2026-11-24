@@ -174,7 +174,7 @@ func TestAddTag(t *testing.T) {
 }
 
 func TestAddTagCaseInsensitive(t *testing.T) {
-	tag := "@EveryOtherSecond"
+	tag := "@CustomEveryOtherSecond"
 	defer delete(expressions, tag)
 	defer delete(expressions, strings.ToLower(tag))
 	if err := AddTag(tag, "*/2 * * * * *"); err != nil {
@@ -219,6 +219,64 @@ func TestAddTagBuiltinCaseConflict(t *testing.T) {
 	}
 	if due, err := gron.IsDue("@daily", ref.Add(time.Hour)); err != nil || due {
 		t.Errorf("expected daily tag to remain not due at 01:00, got (%v, %v)", due, err)
+	}
+}
+
+func TestEveryOtherTags(t *testing.T) {
+	tests := []struct {
+		name, tag, expr, previous, ref, next string
+	}{
+		{"second", "@everyothersecond", "*/2 * * * * *", "2026-01-01 00:00:58", "2026-01-01 00:00:59", "2026-01-01 00:01:00"},
+		{"minute", "@everyotherminute", "*/2 * * * *", "2026-01-01 00:58:00", "2026-01-01 00:59:00", "2026-01-01 01:00:00"},
+		{"hour", "@everyotherhour", "0 */2 * * *", "2026-01-01 22:00:00", "2026-01-01 23:00:00", "2026-01-02 00:00:00"},
+		{"day", "@everyotherday", "0 0 */2 * *", "2026-01-29 00:00:00", "2026-01-30 00:00:00", "2026-01-31 00:00:00"},
+		{"day across month", "@everyotherday", "0 0 */2 * *", "2026-01-31 00:00:00", "2026-01-31 12:00:00", "2026-02-01 00:00:00"},
+		{"month", "@everyothermonth", "0 0 1 */2 *", "2026-11-01 00:00:00", "2026-12-01 00:00:00", "2027-01-01 00:00:00"},
+		{"year", "@everyotheryear", "0 0 0 1 1 * */2", "2026-01-01 00:00:00", "2027-01-01 00:00:00", "2028-01-01 00:00:00"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			parse := func(value string) time.Time {
+				t.Helper()
+				ref, err := time.Parse(FullDateFormat, value)
+				if err != nil {
+					t.Fatal(err)
+				}
+				return ref
+			}
+			got, err := Segments(test.tag)
+			if err != nil {
+				t.Fatal(err)
+			}
+			want, err := Segments(test.expr)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if strings.Join(got, " ") != strings.Join(want, " ") {
+				t.Errorf("expected %s to expand to %s, got %v", test.tag, test.expr, got)
+			}
+			if !IsValid(test.tag) {
+				t.Errorf("expected %s to be valid", test.tag)
+			}
+
+			gron := New()
+			for _, check := range []struct {
+				ref string
+				due bool
+			}{{test.previous, true}, {test.ref, false}, {test.next, true}} {
+				if due, err := gron.IsDue(strings.ToUpper(test.tag), parse(check.ref)); err != nil || due != check.due {
+					t.Errorf("IsDue(%s, %s): expected %v, got (%v, %v)", test.tag, check.ref, check.due, due, err)
+				}
+			}
+			next, err := NextTickAfter(test.tag, parse(test.ref), false)
+			if err != nil || !next.Equal(parse(test.next)) {
+				t.Errorf("NextTickAfter(%s): expected %s, got (%v, %v)", test.tag, test.next, next, err)
+			}
+			previous, err := PrevTickBefore(test.tag, parse(test.ref), false)
+			if err != nil || !previous.Equal(parse(test.previous)) {
+				t.Errorf("PrevTickBefore(%s): expected %s, got (%v, %v)", test.tag, test.previous, previous, err)
+			}
+		})
 	}
 }
 

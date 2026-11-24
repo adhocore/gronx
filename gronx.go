@@ -27,6 +27,13 @@ var expressions = map[string]string{
 	"@30minutes": "0,30 * * * *",
 
 	"@everysecond": "* * * * * *",
+
+	"@everyothersecond": "*/2 * * * * *",
+	"@everyotherminute": "*/2 * * * *",
+	"@everyotherhour":   "0 */2 * * *",
+	"@everyotherday":    "0 0 */2 * *",
+	"@everyothermonth":  "0 0 1 */2 *",
+	"@everyotheryear":   "0 0 0 1 1 * */2",
 }
 
 // AddTag adds a new custom tag representing given expr
