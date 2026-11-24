@@ -173,6 +173,55 @@ func TestAddTag(t *testing.T) {
 	})
 }
 
+func TestAddTagCaseInsensitive(t *testing.T) {
+	tag := "@EveryOtherSecond"
+	defer delete(expressions, tag)
+	defer delete(expressions, strings.ToLower(tag))
+	if err := AddTag(tag, "*/2 * * * * *"); err != nil {
+		t.Fatal(err)
+	}
+
+	ref := time.Date(2026, time.January, 1, 0, 0, 2, 0, time.UTC)
+	for _, name := range []string{tag, strings.ToLower(tag), strings.ToUpper(tag)} {
+		t.Run(name, func(t *testing.T) {
+			gron := New()
+			if due, err := gron.IsDue(name, ref); err != nil || !due {
+				t.Errorf("expected tag to be due, got (%v, %v)", due, err)
+			}
+			if due, err := gron.IsDue(name, ref.Add(time.Second)); err != nil || due {
+				t.Errorf("expected tag not to be due, got (%v, %v)", due, err)
+			}
+		})
+	}
+
+	t.Run("custom tag conflict", func(t *testing.T) {
+		if err := AddTag(strings.ToLower(tag), "* * * * * *"); err == nil {
+			t.Error("expected conflict for another spelling of the same tag")
+		}
+		if due, err := New().IsDue(tag, ref.Add(time.Second)); err != nil || due {
+			t.Errorf("expected original schedule to remain, got (%v, %v)", due, err)
+		}
+	})
+}
+
+func TestAddTagBuiltinCaseConflict(t *testing.T) {
+	original := expressions["@daily"]
+	defer func() { expressions["@daily"] = original }()
+	defer delete(expressions, "@DAILY")
+	if err := AddTag("@DAILY", "* * * * * *"); err == nil {
+		t.Error("expected conflict with the built-in daily tag")
+	}
+
+	gron := New()
+	ref := time.Date(2026, time.January, 1, 0, 0, 0, 0, time.UTC)
+	if due, err := gron.IsDue("@daily", ref); err != nil || !due {
+		t.Errorf("expected daily tag to remain due at midnight, got (%v, %v)", due, err)
+	}
+	if due, err := gron.IsDue("@daily", ref.Add(time.Hour)); err != nil || due {
+		t.Errorf("expected daily tag to remain not due at 01:00, got (%v, %v)", due, err)
+	}
+}
+
 func TestIsDue(t *testing.T) {
 	gron := New()
 
