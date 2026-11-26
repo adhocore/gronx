@@ -48,6 +48,11 @@ func inStep(val int, s string, bounds []int, isWeekDay bool) (bool, error) {
 		if start == 7 && end != 7 {
 			start = 0
 		}
+		// A step without a range end ("3/2") runs to the end of the field like
+		// "3-7/2", the same way "5/20" in the minute field is "5-59/20".
+		if len(sub) == 1 {
+			end = bounds[1]
+		}
 		// time.Weekday() reports Sunday as 0, but a step whose range ends at 7
 		// (e.g. "4-7/3") expresses it as 7. Sunday is due if either form lands
 		// on the step, and checking both keeps "0-7/2" (0 already in range) working.
