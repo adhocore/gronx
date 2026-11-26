@@ -62,6 +62,27 @@ func TestNextTickAfter(t *testing.T) {
 			}
 		})
 
+		t.Run("weekday step without range end runs to 7 and matches Sunday", func(t *testing.T) {
+			// 1/2 in the weekday field is 1-7/2, {Mon, Wed, Fri, Sun}, the same way
+			// 5/20 in the minute field is 5-59/20. Sun 2032-05-02 must not be skipped.
+			ref, _ := time.Parse(FullDateFormat, "2032-05-01 00:00:00")
+			for expr, want := range map[string]string{
+				"0 0 * * 1/2": "2032-05-02",
+				"0 0 * * 3/2": "2032-05-02",
+				"0 0 * * 1/6": "2032-05-02",
+				"0 0 * * 2/2": "2032-05-04",
+				"0 0 * * 7/3": "2032-05-02",
+			} {
+				next, err := NextTickAfter(expr, ref, false)
+				if err != nil {
+					t.Fatalf("%s: unexpected error: %v", expr, err)
+				}
+				if got := next.Format("2006-01-02"); got != want {
+					t.Errorf("next %s after 2032-05-01 should be %s, got %s", expr, want, got)
+				}
+			}
+		})
+
 		for i, test := range testcases() {
 			t.Run(fmt.Sprintf("next run after incl #%d: %s", i, test.Expr), func(t *testing.T) {
 				ref, _ := time.Parse(FullDateFormat, test.Ref)
