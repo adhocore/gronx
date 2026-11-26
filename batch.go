@@ -24,26 +24,25 @@ func (g *Gronx) BatchDue(exprs []string, ref ...time.Time) []Expr {
 	for i := range exprs {
 		batch[i].Expr = exprs[i]
 		segs, batch[i].Err = Segments(exprs[i])
-		key := strings.Join(segs, " ")
 		if batch[i].Err != nil {
-			cache[key] = batch[i]
 			continue
 		}
 
+		if isMinutePrecision(exprs[i]) {
+			segs[0] = "*"
+		}
+
+		// Key on the segments that are checked: "* * * * *" ignores seconds
+		// but "0 * * * * *" does not, though both have the same segments.
+		key := strings.Join(segs, " ")
 		if c, ok := cache[key]; ok {
 			batch[i] = c
 			batch[i].Expr = exprs[i]
 			continue
 		}
 
-		dueSegs := segs
-		if isMinutePrecision(exprs[i]) {
-			dueSegs = append([]string{}, segs...)
-			dueSegs[0] = "*"
-		}
-
 		// Use SegmentsDue so day-of-month / weekday OR semantics match IsDue.
-		batch[i].Due, batch[i].Err = g.SegmentsDue(dueSegs)
+		batch[i].Due, batch[i].Err = g.SegmentsDue(segs)
 		cache[key] = batch[i]
 	}
 	return batch
