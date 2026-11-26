@@ -75,3 +75,25 @@ func TestBatchDueMinutePrecision(t *testing.T) {
 		t.Fatalf("expected Due=true for %s at %v", expr, ref)
 	}
 }
+
+func TestBatchDueCacheKeepsPrecision(t *testing.T) {
+	g := New()
+	ref, _ := time.Parse(FullDateFormat, "2026-10-01 12:10:15")
+	// "* * * * *" and "0 * * * * *" have the same segments once the second is
+	// prepended, but only the 5-part one ignores seconds.
+	for _, exprs := range [][]string{
+		{"* * * * *", "0 * * * * *"},
+		{"0 * * * * *", "* * * * *"},
+		{"10 12 * * * 2026", "0 10 12 * * * 2026"},
+	} {
+		for _, b := range g.BatchDue(exprs, ref) {
+			due, err := New().IsDue(b.Expr, ref)
+			if err != nil || b.Err != nil {
+				t.Fatalf("%s: unexpected error: %v, %v", b.Expr, err, b.Err)
+			}
+			if b.Due != due {
+				t.Errorf("BatchDue(%q) of %q: expected Due=%v, got %v", b.Expr, exprs, due, b.Due)
+			}
+		}
+	}
+}
